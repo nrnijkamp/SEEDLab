@@ -1,2 +1,0 @@
-# SEEDLab
-SeedLab
