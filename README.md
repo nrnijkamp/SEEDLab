@@ -1,2 +1,1 @@
-# SEEDLab
-SeedLab
+# SEED Lab Group 3
