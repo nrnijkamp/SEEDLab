@@ -7,7 +7,11 @@ from time import sleep
 import numpy as np
 import cv2 as cv
 
+# Calibrates the camera
+def calibrate():
+    pass
 
+# Obtains the marker's quadrant
 def video():
     cap = cv.VideoCapture(0)
     #Infinite loop
@@ -15,7 +19,7 @@ def video():
         ret, frame = cap.read()
         
         if not ret:
-            Print("Can't recieve frame...")
+            print("Can't recieve frame...")
             break
         #Make gray and display
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
@@ -66,6 +70,8 @@ def video():
 #The quadrant variable is set the the quad the marker is in, when the video function is run
 #Press 'q' to exit the video mode
 
-quadrant = 0
-video()
-print("Done")
+# Only run when not imported
+if __name__ == "__main__":
+    quadrant = 0
+    video()
+    print("Done")
