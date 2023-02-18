@@ -8,8 +8,15 @@ import numpy as np
 import cv2 as cv
 
 # Calibrates the camera
+#The commented code in here doesn't seem to work. I am not sure why he wants us to change the awb though the pi when we are using
+#openCV, becuase this hangs my code evey time. I changed the image to grayscale in the video function, which should give us the
+#sameconsistancy improvements as if we had changed the awb.
 def calibrate():
     pass
+    #camera = PiCamera()
+    #camera.awb_mode = 'off'
+    #camera.resolution = (1920, 1088)
+    #rawCapture = PiRGBArray(camera, size =(1920, 1088))
 
 # Obtains the marker's quadrant
 def video():
@@ -73,5 +80,6 @@ def video():
 # Only run when not imported
 if __name__ == "__main__":
     quadrant = 0
+    calibrate()
     video()
     print("Done")
