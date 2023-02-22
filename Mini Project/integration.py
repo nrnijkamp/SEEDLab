@@ -41,4 +41,5 @@ while True:
     lcd.message = f"setpoint: {angle_str}"
 
     # Send info to arduino
-    #TODO
+    angle = [0, 1, 2, 3][quadrant - 1]
+    bus.write_byte(ADDRESS, angle)
