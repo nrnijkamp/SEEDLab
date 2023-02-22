@@ -2,8 +2,11 @@
 //Sam Leonard, Dawson J. Gullickson
 
 #include <Wire.h>
+#include "DualMC33926MotorShield.h"
 
 #define PERIPHERAL_ADDRESS 0x08
+
+DualMC33926MotorShield md;
 
 //PID Control Gains 
 double Kp = 15.3786175942488;
@@ -67,23 +70,35 @@ void loop() {
     e = sgn(e)*min(umax/Kp, abs(e));
     I = (u-Kp*e-Kd*D)/Ki; 
   }
-    //[write u to ouput]
+  
+  // Convert voltage to speed
+  int speed = u*400/umax;
+  // Set speed
+  md.setM1Speed(speed);
+  stopIfFault();
 
-    //part 3 implementation
-    double currentTime = millis() / 1000;
-    Ts = currentTime - Tc;
-    Tc = currentTime;
+  //part 3 implementation
+  double currentTime = millis() / 1000;
+  Ts = currentTime - Tc;
+  Tc = currentTime;
   Serial.print("Time: ");
   Serial.print(currentTime);
-  Serial.print("R: ");
+  Serial.print("\tR: ");
   Serial.println(r);
-  }
+}
 
-  void receiveData(int _byte_ount) {
-    angle = Wire.read();
-  }
+void receiveData(int _byte_ount) {
+  angle = Wire.read();
+}
 
-  int sgn(double v) {
-    if (v >= 0) return 1;
-    else return -1;
+int sgn(double v) {
+  if (v >= 0) return 1;
+  else return -1;
+}
+
+void stopIfFault() {
+  if (md.getFault()) {
+    Serial.println("fault");
+    while (true);
   }
+}
