@@ -1,6 +1,10 @@
-//PI Motor Implementation - Mini Project 4.7
-//Sam Leonard
-// 2/15/23
+//PID Motor Implementation - Mini Project 4.7
+//Sam Leonard, Dawson J. Gullickson
+
+#include <Wire.h>
+
+#define PERIPHERAL_ADDRESS 0x08
+
 //PID Control Gains 
 double Kp = 15.3786175942488;
 double Ke = .5;
@@ -12,18 +16,32 @@ double I = 0; //integral
 double D = 0; //deriv
 double e_past = 0; //prev val
 double Ts = 0;
-double Tc = millis() / 1000; //[Do they want me to reference a built in clock, or am I overthinking?]
+double Tc = millis() / 1000;
 
+unsigned int angle = 0; // As a multiple of pi/2s
 double r = 0; //radians
 double umax = 7.8; //max voltage that can be supplied
-void setup() {}
+void setup() {
+  // Start serial for output
+  Serial.begin(31250);
+
+  // Initialize i2c as peripheral
+  Wire.begin(PERIPHERAL_ADDRESS);
+
+  // Set I2C callbacks
+  Wire.onReceive(receiveData);
+
+  Serial.println("Ready!");
+}
 
 void loop() {
   //Given pseudocode translated to code
 
-  //[read r - user input] radians [Speak to nick to learn how the system gets input]
+  // Convert angle to radians
+  r = angle*PI/2;
 
   //[read y - where the motor is at] radians, use encoder to find position?
+  double y = 0;
 
   //calc error
   double e = r-y; //find where it needs to move from where it is
@@ -59,4 +77,13 @@ void loop() {
   Serial.print(currentTime);
   Serial.print("R: ");
   Serial.println(r);
+  }
+
+  void receiveData(int _byte_ount) {
+    angle = Wire.read();
+  }
+
+  int sgn(double v) {
+    if (v >= 0) return 1;
+    else return -1;
   }
