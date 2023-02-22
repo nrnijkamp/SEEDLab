@@ -2,9 +2,10 @@
 //Sam Leonard
 // 2/15/23
 //PID Control Gains 
-int Kp=;
-int Ke=;
-int Ki=;
+int Kp=15.3786175942488;
+int Ke=.5;
+int Ki=2.37803426483209;
+int Kd=0;
 
 //Given from document
 int I=0; //integral
@@ -12,9 +13,10 @@ int D=0; //deriv
 int e_past=0; //prev val
 int Ts=0;
 int Tc=currentTime; //[Do they want me to reference a built in clock, or am I overthinking?]
+int long t=0;
 
 int r=0; //radians
-int umax= 10; //max voltage that can be supplied
+int umax= 7.8; //max voltage that can be supplied
 void setup() {
   // put your setup code here, to run once:
 
@@ -22,7 +24,15 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+t++;
+//4.7 Part 3
+/*
+if(t=100)
+{
+  r=1;
+}
 
+*/
   //Given pseudocode translated to code
 
   //[read r - user input] radians [Speak to nick to learn how the system gets input]
@@ -54,8 +64,12 @@ void loop() {
     I=(u-Kp*e-Kd*D)/Ki; 
   }
     //[write u to ouput]
-    
+
+    //part 3 implementation
     Ts=currentTime-Tc;
     Tc=currentTime;
-
+  Serial.print("Time: ");
+  Serial.print(t);
+  Serial.print("R: ");
+  Serial.println(r);
   }
