@@ -18,68 +18,65 @@ def calibrate():
     #camera.resolution = (1920, 1088)
     #rawCapture = PiRGBArray(camera, size =(1920, 1088))
 
+def video_init() -> cv.VideoCapture:
+    return cv.VideoCapture(0)
+
 # Obtains the marker's quadrant
-def video():
-    cap = cv.VideoCapture(0)
-    #Infinite loop
-    while True:
-        ret, frame = cap.read()
+def video_loop(cap: cv.VideoCapture) -> int:
+    ret, frame = cap.read()
+    
+    if not ret:
+        print("Can't recieve frame...")
+        return
+    #Make gray and display
+    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+    cv.imshow('frame', gray)
+    
+    arucoDict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_5X5_1000)
+    param = cv.aruco.DetectorParameters_create()
+    (corners, _ids, _rejected) = cv.aruco.detectMarkers(gray, arucoDict, parameters = param)
+    
+    if len(corners) >= 1:
         
-        if not ret:
-            print("Can't recieve frame...")
-            break
-        #Make gray and display
-        gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-        cv.imshow('frame', gray)
+        x_sum = corners[0][0][0][0]+ corners[0][0][1][0]+ corners[0][0][2][0]+ corners[0][0][3][0]
+        x_centerPixel = x_sum*.25
         
-        arucoDict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_5X5_1000)
-        param = cv.aruco.DetectorParameters_create()
-        (corners, ids, rejected) = cv.aruco.detectMarkers(gray, arucoDict, parameters = param)
+        y_sum = corners[0][0][0][1]+ corners[0][0][1][1]+ corners[0][0][2][1]+ corners[0][0][3][1]
+        y_centerPixel = y_sum*.25
         
-        if len(corners) >= 1:
-            
-            x_sum = corners[0][0][0][0]+ corners[0][0][1][0]+ corners[0][0][2][0]+ corners[0][0][3][0]
-            x_centerPixel = x_sum*.25
-            
-            y_sum = corners[0][0][0][1]+ corners[0][0][1][1]+ corners[0][0][2][1]+ corners[0][0][3][1]
-            y_centerPixel = y_sum*.25
-            
-            #print("X center: ", x_centerPixel)
-            #print("Y center: ", y_centerPixel)
-            
-            if (x_centerPixel > 318) and (y_centerPixel < 237):
-                quadrant = 1
-                print(quadrant)
-            elif (x_centerPixel <= 318) and (y_centerPixel < 237):
-                quadrant = 2
-                print(quadrant)
-            elif (x_centerPixel <= 318) and (y_centerPixel >= 237):
-                quadrant = 3
-                print(quadrant)
-            elif (x_centerPixel > 318) and (y_centerPixel >= 237):
-                quadrant = 4
-                print(quadrant)
-            
-            
-        else:
-            quadrant = 0
-            print(quadrant)
+        #print("X center: ", x_centerPixel)
+        #print("Y center: ", y_centerPixel)
         
-        if cv.waitKey(1) == ord('q'):
-            break
-        
+        if (x_centerPixel > 318) and (y_centerPixel < 237):
+            quadrant = 1
+        elif (x_centerPixel <= 318) and (y_centerPixel < 237):
+            quadrant = 2
+        elif (x_centerPixel <= 318) and (y_centerPixel >= 237):
+            quadrant = 3
+        elif (x_centerPixel > 318) and (y_centerPixel >= 237):
+            quadrant = 4
+    else:
+        quadrant = 0
+    return quadrant
+
+def video_deinit(cap: cv.VideoCapture):
     cap.release()
     cv.destroyAllWindows()
 
-
-
+def was_quit_pressed() -> bool:
+    return cv.waitKey(1) == ord('q')
 #Driver code
 #The quadrant variable is set the the quad the marker is in, when the video function is run
 #Press 'q' to exit the video mode
 
 # Only run when not imported
 if __name__ == "__main__":
-    quadrant = 0
     calibrate()
-    video()
+    cap = video_init()
+    while True:
+        quadrant = video_loop()
+        print(quadrant)
+        if was_quit_pressed():
+            break
+    video_deinit(cap)
     print("Done")
