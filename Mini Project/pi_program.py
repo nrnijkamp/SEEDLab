@@ -40,9 +40,9 @@ while True:
     lcd.clear()
     lcd.message = "setpoint: " + angle_str
 
-    # # Send info to arduino
-    # angle = [0, 1, 2, 3][quadrant - 1]
-    # bus.write_byte(ADDRESS, angle)
+    # Send info to arduino
+    angle = [0, 1, 2, 3][quadrant - 1]
+    bus.write_byte(ADDRESS, angle)
 
     if pi_camera.was_quit_pressed():
         break
