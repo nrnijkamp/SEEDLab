@@ -35,10 +35,10 @@ while True:
     quadrant = pi_camera.video_loop(cap)
     print(quadrant)
 
-    # # Display angle
-    # angle_str = ["0", "pi/2", "pi", "3pi/2"][quadrant - 1]
-    # lcd.clear()
-    # lcd.message = "setpoint: " + angle_str
+    # Display angle
+    angle_str = ["0", "pi/2", "pi", "3pi/2"][quadrant - 1]
+    lcd.clear()
+    lcd.message = "setpoint: " + angle_str
 
     # # Send info to arduino
     # angle = [0, 1, 2, 3][quadrant - 1]
