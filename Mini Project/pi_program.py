@@ -40,9 +40,9 @@ while True:
         continue
 
     # Display angle
-    angle_str = ["0", "π/2", "π", "3π/2"][quadrant - 1]
+    angle_str = ["0", "pi/2", "pi", "3pi/2"][quadrant - 1]
     lcd.clear()
-    lcd.message = f"setpoint: {angle_str}"
+    lcd.message = "setpoint: " + angle_str
 
     # Send info to arduino
     angle = [0, 1, 2, 3][quadrant - 1]
