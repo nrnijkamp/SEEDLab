@@ -1,3 +1,6 @@
+# SEED Lab Mini Project Group 3
+# Dawson J. Gullickson
+
 import smbus2
 import time
 

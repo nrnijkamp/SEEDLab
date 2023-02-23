@@ -1,4 +1,4 @@
-// SEED Lab Mini Project
+// SEED Lab Mini Project Group 3
 // Sam Leonard, Dawson J. Gullickson
 
 #include <Wire.h>

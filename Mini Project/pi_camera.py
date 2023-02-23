@@ -1,5 +1,5 @@
-#This is the file that where we will make the code for the mini project
-#Group 3
+# SEED Lab Mini Project Group 3
+# Nick Nijkamp
 
 from picamera import PiCamera
 from picamera.array import PiRGBArray
