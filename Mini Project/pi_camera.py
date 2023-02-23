@@ -74,7 +74,7 @@ if __name__ == "__main__":
     calibrate()
     cap = video_init()
     while True:
-        quadrant = video_loop()
+        quadrant = video_loop(cap)
         print(quadrant)
         if was_quit_pressed():
             break

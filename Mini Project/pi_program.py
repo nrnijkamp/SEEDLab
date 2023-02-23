@@ -8,6 +8,10 @@ import board
 import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
 
 import pi_camera
+from picamera import PiCamera
+from picamera.array import PiRGBArray
+import numpy as np
+import cv2 as cv
 
 # Chosen by the Arduino
 ADDRESS = 0x08
@@ -33,7 +37,7 @@ cap = pi_camera.video_init()
 while True:
     # Get the quadrant the marker is in
     quadrant = 0
-    pi_camera.video(cap)
+    pi_camera.video_loop(cap)
     if quadrant == 0:
         # Wait until marker recognized
         time.sleep(1)
