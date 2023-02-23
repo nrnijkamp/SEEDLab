@@ -1,10 +1,18 @@
 // SEED Lab Mini Project Group 3
-// Sam Leonard, Dawson J. Gullickson
+// Sam Leonard, Dawson J. Gullickson, Julia Kaase
 
+#include <DualMC33926MotorShield.h>
+#include <Encoder.h>
 #include <Wire.h>
-#include "DualMC33926MotorShield.h"
 
 #define PERIPHERAL_ADDRESS 0x08
+
+// Change these pin numbers to the pins connected to your encoder.
+//   Best Performance: both pins have interrupt capability
+//   Good Performance: only the first pin has interrupt capability
+//   Low Performance:  neither pin has interrupt capability
+Encoder knobRight(3, 8);
+//   avoid using pins with LEDs attached
 
 DualMC33926MotorShield md;
 
@@ -41,8 +49,9 @@ void loop() {
   // Convert angle to radians
   r = angle*PI/2;
 
-  //TODO [read y - where the motor is at] radians, use encoder to find position?
-  double y = 0;
+  // Get motor radians
+  long newRight = knobRight.read();
+  double y = ((double)newRight/3200)*2*PI;
 
   // calc error
   double e = r-y; // find where it needs to move from where it is
