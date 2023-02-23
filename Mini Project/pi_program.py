@@ -2,7 +2,6 @@
 # Dawson J. Gullickson
 
 import smbus2
-import time
 
 import board
 import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
@@ -36,6 +35,7 @@ while True:
     quadrant = pi_camera.video_loop(cap)
     if quadrant == 0 or quadrant == last_quadrant:
         continue
+    last_quadrant = quadrant
 
     # Display angle
     angle_str = ["0", "pi/2", "pi", "3pi/2"][quadrant - 1]

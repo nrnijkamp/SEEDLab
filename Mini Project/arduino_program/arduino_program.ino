@@ -27,7 +27,7 @@ double I = 0; // integral
 double D = 0; // derivative
 double e_past = 0; // previous value
 double Ts = 0; // Time step
-double Tc = millis() / 1000; // Running time
+double Tc = millis() / 1000.0; // Running time
 
 unsigned int angle = 0; // As a multiple of pi/2
 double r = 0; // radians
@@ -35,6 +35,9 @@ double umax = 7.8; // max voltage that can be supplied
 void setup() {
   // Start serial for output
   Serial.begin(31250);
+  
+  // Initialize motor
+  md.init();
 
   // Initialize i2c as peripheral
   Wire.begin(PERIPHERAL_ADDRESS);
@@ -48,10 +51,16 @@ void setup() {
 void loop() {
   // Convert angle to radians
   r = angle*PI/2;
+  // Serial.print("Desired: ");
+  // Serial.print(r);
+  // Serial.print(" ");
 
   // Get motor radians
   long newRight = knobRight.read();
   double y = ((double)newRight/3200)*2*PI;
+  // Serial.print("Radians: ");
+  // Serial.print(y);
+  // Serial.print(" ");
 
   // calc error
   double e = r-y; // find where it needs to move from where it is
@@ -76,19 +85,21 @@ void loop() {
   }
   
   // Convert voltage to speed
-  int speed = u*400/umax;
+  int speed = -u*400/umax;
+  // Serial.print("Speed: ");
+  // Serial.println(speed);
   // Set speed
   md.setM1Speed(speed);
   stopIfFault();
 
   // Output data (part 3)
-  double currentTime = millis() / 1000;
+  double currentTime = millis() / 1000.0;
   Ts = currentTime - Tc;
   Tc = currentTime;
   Serial.print("Time: ");
   Serial.print(currentTime);
-  Serial.print("\tR: ");
-  Serial.println(r);
+  Serial.print("\tAngle: ");
+  Serial.println(y);
 }
 
 // Get angle from raspberry pi
