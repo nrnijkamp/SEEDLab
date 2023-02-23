@@ -30,10 +30,12 @@ pi_camera.calibrate()
 
 # Program loop
 cap = pi_camera.video_init()
+last_quadrant = 0
 while True:
     # Get the quadrant the marker is in
     quadrant = pi_camera.video_loop(cap)
-    print(quadrant)
+    if quadrant == 0 or quadrant == last_quadrant:
+        continue
 
     # Display angle
     angle_str = ["0", "pi/2", "pi", "3pi/2"][quadrant - 1]
