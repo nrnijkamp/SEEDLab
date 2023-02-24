@@ -49,9 +49,51 @@
         
         % 2
         \item 
+            [insert controlDesign.png]
+        Below is the closed loop step response graph generated from the motor.
+            [insert 2-closedLoop.png]
+        Here is the experimental data generated from the closed loop PI controller:
+            [insert closed loop experimental - Dawson has the data?]
+        The closed loop resoponse adjusts well for overshoot and undershoot. The feedback allows for the motor to maks adjustments as needed. 
 
+        Below is the open loop step response graph generated from the motor.
+            [insert 2-openLoop.png]
+        Implementing the open loop response would not work well, the motor goes off to infinity, and does not keep track of where it should be. 
         % 3
         \item 
+        Arduino Code:
+
+            PID Variables:
+            double Kp = 15.3786175942488; [units - Dawson has them?]
+            double Ki = 2.37803426483209; [units - Dawson has them?] 
+            double Kd = 0; [units - Dawson has them?]
+            Controller Code:
+                    // calc error
+                double e = r-y; // find where it needs to move from where it is
+
+                if (Ts > 0) {
+                    D = (e-e_past)/Ts; // derivative
+                    e_past = e; // update val to get other vals
+                } else {
+                    D = 0;
+                }
+
+                I = I+Ts*e; // integral
+
+                // Calc controller output -- output voltage uses PID
+                double u = Kp*e+Ki*I+Kd*D;
+                // deals with actuator saturation
+                // i.e. if trying to write a voltage too high for board to supply
+                if (abs(u) > umax) {
+                    u = sgn(u)*umax;
+                    e = sgn(e)*min(umax/Kp, abs(e));
+                    I = (u-Kp*e-Kd*D)/Ki; 
+                }
+                
+                // Convert voltage to speed
+                int speed = -u*400/umax;
+
+            [insert controlDesign.png]
 
         % 4
         \item Github repository: \url{https://github.com/nrnijkamp/SEEDLab}
