@@ -18,7 +18,7 @@ DualMC33926MotorShield md;
 
 // PID Control Gains 
 double Kp = 15.3786175942488; // V/rad
-double Ki = 2.37803426483209; // V/rad^2
+double Ki = 2.37803426483209; // V/(rad*s)
 double Kd = 0;                // V*s/rad
 
 // Given from document
