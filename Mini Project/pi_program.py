@@ -37,14 +37,14 @@ while True:
     #     continue
     # last_quadrant = quadrant
 
-    # Display angle
-    angle_str = ["0", "pi/2", "pi", "3pi/2"][quadrant - 1]
-    lcd.clear()
-    lcd.message = "setpoint: " + angle_str
+    # # Display angle
+    # angle_str = ["0", "pi/2", "pi", "3pi/2"][quadrant - 1]
+    # lcd.clear()
+    # lcd.message = "setpoint: " + angle_str
 
-    # Send info to arduino
-    angle = [0, 1, 2, 3][quadrant - 1]
-    bus.write_byte(ADDRESS, angle)
+    # # Send info to arduino
+    # angle = [0, 1, 2, 3][quadrant - 1]
+    # bus.write_byte(ADDRESS, angle)
 
     if pi_camera.was_quit_pressed():
         break
