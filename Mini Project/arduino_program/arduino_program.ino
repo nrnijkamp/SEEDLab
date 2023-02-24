@@ -17,10 +17,9 @@ Encoder knobRight(3, 8);
 DualMC33926MotorShield md;
 
 // PID Control Gains 
-double Kp = 15.3786175942488;
-double Ke = .5;
-double Ki = 2.37803426483209;
-double Kd = 0;
+double Kp = 15.3786175942488; // V/rad
+double Ki = 2.37803426483209; // V/rad^2
+double Kd = 0;                // V*s/rad
 
 // Given from document
 double I = 0; // integral
