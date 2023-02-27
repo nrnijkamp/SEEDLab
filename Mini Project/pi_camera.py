@@ -3,41 +3,45 @@
 
 from picamera import PiCamera
 from picamera.array import PiRGBArray
-from time import sleep
-import numpy as np
 import cv2 as cv
 
 # Calibrates the camera
-#The commented code in here doesn't seem to work. I am not sure why he wants us to change the awb though the pi when we are using
-#openCV, becuase this hangs my code evey time. I changed the image to grayscale in the video function, which should give us the
-#sameconsistancy improvements as if we had changed the awb.
-def calibrate():
-    pass
-    #camera = PiCamera()
-    #camera.awb_mode = 'off'
-    #camera.resolution = (1920, 1088)
-    #rawCapture = PiRGBArray(camera, size =(1920, 1088))
+# https://picamera.readthedocs.io/en/release-1.13/api_camera.html
+def video_init() -> PiCamera:
+    camera = PiCamera()
 
-def video_init() -> cv.VideoCapture:
-    return cv.VideoCapture(0)
+    # Set light sensitivity
+    camera.iso = 400 
+    
+    camera.shutter_speed = camera.exposure_speed
+    camera.exposure_mode = "off"
+
+    # Get automatic white balance
+    camera.awb_mode = "auto"
+    gains = camera.awb_gains
+    # Set constant awb from automatic detection
+    camera.awb_mode = "off"
+    camera.awb_gains = gains
+
+    return camera
 
 # Obtains the marker's quadrant
-def video_loop(cap: cv.VideoCapture) -> int:
-    ret, frame = cap.read()
+def video_loop(camera: PiCamera) -> int:
+    # https://picamera.readthedocs.io/en/release-1.13/api_array.html
+    raw_capture = PiRGBArray(camera, (1920, 1080))
+    camera.capture(raw_capture, "bgr")
     
-    if not ret:
-        print("Can't recieve frame...")
-        return
-    #Make gray and display
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    cv.imshow('frame', gray)
+    # Display image
+    img = raw_capture.array
+    img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+    cv.imshow("Image", img)
     
     arucoDict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_5X5_1000)
     param = cv.aruco.DetectorParameters_create()
-    (corners, _ids, _rejected) = cv.aruco.detectMarkers(gray, arucoDict, parameters = param)
+    corners, _ids, _rejected = cv.aruco.detectMarkers(img, arucoDict, parameters = param)
     
+    # Set quadrant
     if len(corners) >= 1:
-        
         x_sum = corners[0][0][0][0]+ corners[0][0][1][0]+ corners[0][0][2][0]+ corners[0][0][3][0]
         x_centerPixel = x_sum*.25
         
@@ -56,27 +60,31 @@ def video_loop(cap: cv.VideoCapture) -> int:
         elif (x_centerPixel > 318) and (y_centerPixel >= 237):
             quadrant = 4
     else:
+        # No markers detected
         quadrant = 0
+
+    # Close raw_capture
+    raw_capture.close()
+    # Return quadrant
     return quadrant
 
-def video_deinit(cap: cv.VideoCapture):
-    cap.release()
+def video_deinit(camera: PiCamera):
+    camera.close()
     cv.destroyAllWindows()
 
 def was_quit_pressed() -> bool:
     return cv.waitKey(1) == ord('q')
+
 #Driver code
 #The quadrant variable is set the the quad the marker is in, when the video function is run
 #Press 'q' to exit the video mode
-
-# Only run when not imported
+# Only runs when not imported
 if __name__ == "__main__":
-    calibrate()
-    cap = video_init()
+    camera = video_init()
     while True:
-        quadrant = video_loop(cap)
+        quadrant = video_loop(camera)
         print(quadrant)
         if was_quit_pressed():
             break
-    video_deinit(cap)
+    video_deinit(camera)
     print("Done")
