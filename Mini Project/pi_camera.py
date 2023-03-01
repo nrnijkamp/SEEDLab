@@ -28,7 +28,7 @@ def video_init() -> PiCamera:
 # Obtains the marker's quadrant
 def video_loop(camera: PiCamera) -> int:
     # https://picamera.readthedocs.io/en/release-1.13/api_array.html
-    raw_capture = PiRGBArray(camera, (1920, 1080))
+    raw_capture = PiRGBArray(camera)
     camera.capture(raw_capture, "bgr")
     
     # Display image
