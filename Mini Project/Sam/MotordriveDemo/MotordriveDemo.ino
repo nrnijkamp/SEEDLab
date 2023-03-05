@@ -20,7 +20,8 @@ void setup()
 
 void loop()
 {
-  for (int i = 0; i <= 400; i++)
+
+  for (int i = 0; i <= 400; i++)//spin in positive dir
   {
     md.setM1Speed(i);
     stopIfFault();
