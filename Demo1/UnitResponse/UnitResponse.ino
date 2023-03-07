@@ -27,12 +27,12 @@ void setup() {
 
 void loop() {
   // Set voltage
-  double u1 = 0.5
-  double u2 = 0.5
+  double u1 = 0.5;
+  double u2 = 0.5;
   
   // Convert voltage to speed
-  int speed1 = u1*400.0/umax; //NOTE maybe negative
-  int speed2 = u2*400.0/umax; //NOTE maybe negative
+  int speed1 = -(int)(u1*400.0)/umax;
+  int speed2 = (int)(u2*400.0)/umax;
   // Set speed
   md.setM1Speed(speed1);
   md.setM2Speed(speed2);
@@ -51,7 +51,7 @@ void loop() {
   Serial.print("\t");
   Serial.print(a1);
   Serial.print("\t");
-  Serial.print(a2);
+  Serial.println(a2);
 }
 
 // Halts the program if the motor faults
