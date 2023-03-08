@@ -11,8 +11,8 @@ J=.05;
 b=.5;
 
 %run sim
-open_system('rho');
-out=sim('rho');
+open_system('rhoBlock');
+out=sim('rhoBlock');
 
 %plot results
 figure

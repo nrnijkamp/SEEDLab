@@ -10,8 +10,8 @@ J=.05;
 b=.5;
 
 %run sim
-open_system('outerLoop');
-out=sim('outerLoop');
+open_system('outerLoopBlock');
+out=sim('outerLoopBlock');
 
 %plot results
 figure
