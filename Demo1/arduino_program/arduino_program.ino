@@ -132,12 +132,32 @@ void output() {
   Serial.print('\t');
 }
 
-void loop() {
-  //TODO get desired angle
-  double phi_desired = 0;
 
-  //TODO get desired forward speed
-  double rho_dot_desired = 0;
+// ---== TASKS ==---
+const double turn_to_angle = 0; // radians
+const double forward_distance = 0; // cm
+const double move_time = 1; // s
+bool should_turn = false;
+bool should_move = false;
+
+bool is_moving = false;
+double end_time = 0;
+
+void loop() {
+  // Set phi_desired based on task settings
+  double phi_desired;
+  if (should_turn) {
+    phi_desired = turn_to_angle;
+  } else {
+    phi_desired = 0;
+  }
+
+
+  // //TODO get desired angle
+  // double phi_desired = 0;
+
+  // //TODO get desired forward speed
+  // double rho_dot_desired = 0;
 
   // Get motor radians
   long ticks1 = knobLeft.read(); //NOTE left may be 2
@@ -149,9 +169,9 @@ void loop() {
   double theta1_dot = velLeft;
   double theta2_dot = velRight;
 
+
   // Calculate phi
   double phi = r*(theta1 - theta2)/d;
-
 
   // Calculate error
   double e_phi = phi_des - phi;
@@ -183,6 +203,20 @@ void loop() {
     D_phi_dot = 0;
   }
   I_phi_dot = I_phi_dot+Ts*e_phi_dot; // integral implementation
+
+
+  // Set rho_dot_desired based on task settings and turning progress
+  double rho_dot_desired;
+  double current_time = millis() / 1000.0;
+  if (should_move && !is_moving && e_phi < 0.1) {
+    is_moving = true;
+    end_time = current_time + move_time;
+  }
+  if (is_moving && current_time < end_time) {
+    rho_dot_desired = forward_distance/move_time;
+  } else {
+    rho_dot_desired = 0
+  }
 
 
   // Get rho_dot
