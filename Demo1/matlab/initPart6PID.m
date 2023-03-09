@@ -19,6 +19,10 @@ y_s=[0 0 3 3];
 open_system('Part6PID');
 out=sim('Part6PID');
 
+close all;
 %plot results
 figure
-plot(out.pos);
+plot(out.posx);
+
+figure
+plot(out.posy);
