@@ -1,8 +1,8 @@
 #include <DualMC33926MotorShield.h>
 #include <Encoder.h>
-#include <Wire.h>
+// #include <Wire.h>
 
-#define PERIPHERAL_ADDRESS 0x08
+// #define PERIPHERAL_ADDRESS 0x08
 
 Encoder knobLeft(2, 6);
 Encoder knobRight(3, 8);
@@ -10,21 +10,21 @@ Encoder knobRight(3, 8);
 DualMC33926MotorShield md;
 
 // PID variables
-double Kp_phi = 55.2518209912998  // Hz - get from simulink models - First outerloop PD control
+double Kp_phi = 55.2518209912998; // Hz - get from simulink models - First outerloop PD control
 double Ki_phi = 0;                // Hz^2
 double Kd_phi = 1.74562338241798; // [unit]
 double I_phi = 0; // integral
 double D_phi = 0; // derivative
 double e_phi_past = 0; // previous value
   
-double Kp_phi_dot = 44.9539024669916  // V*s/rad - get from simulink  - Second outerloop PD control
+double Kp_phi_dot = 44.9539024669916; // V*s/rad - get from simulink  - Second outerloop PD control
 double Ki_phi_dot = 0;                // V/rad
 double Kd_phi_dot = 2.54579413878844; // V*s^2/rad
 double I_phi_dot = 0; // integral
 double D_phi_dot = 0; // derivative
 double e_phi_dot_past = 0; // previous value
   
-double Kp_rho_dot = 44.9539024669916  // V*s/m - get from simulink  - Second outerloop PD control
+double Kp_rho_dot = 44.9539024669916; // V*s/m - get from simulink  - Second outerloop PD control
 double Ki_rho_dot = 0;                // V/m
 double Kd_rho_dot = 2.54579413878844; // V*s^2/m
 double I_rho_dot = 0; // integral
@@ -70,11 +70,11 @@ void setup() {
   // Initialize motor
   md.init();
 
-  // Initialize i2c as peripheral
-  Wire.begin(PERIPHERAL_ADDRESS);
+  // // Initialize i2c as peripheral
+  // Wire.begin(PERIPHERAL_ADDRESS);
 
-  // Set I2C callbacks
-  Wire.onReceive(receiveData);
+  // // Set I2C callbacks
+  // Wire.onReceive(receiveData);
 
   Serial.println("Ready!");
 }
@@ -106,27 +106,27 @@ void changePinARight() {
   currentStateRight = digitalRead(clkRight);
 
   //verify which direction, if B changes, it is CCW
-if(currentStateRight != previousStateRight) {
-  if (digitalRead(dtRight) != currentStateRight) {
-    velRight = r*((4*PI)/(deltaTRight*30));
-  } else {
-    velRight = -r*((4*{PI})/(deltaTRight*30));
-  }
-  previousStateRight = currentStateRight;
-  dRight = velRight*deltaTRight;
-  output();
-  toldRight = tnewRight;
+  if(currentStateRight != previousStateRight) {
+    if (digitalRead(dtRight) != currentStateRight) {
+      velRight = r*((4*PI)/(deltaTRight*30));
+    } else {
+      velRight = -r*((4*PI)/(deltaTRight*30));
+    }
+    previousStateRight = currentStateRight;
+    dRight = velRight*deltaTRight;
+    output();
+    toldRight = tnewRight;
  }
 }
 
 void output() {
   velLeft = velLeft*100000;
   velRight = velRight*100000;
-  rhoDot = (r*(velLeft + velRight))/2;
-  phiDot = (r*(velLeft - velRight))/d;
+  double rhoDot = (r*(velLeft + velRight))/2;
+  double phiDot = (r*(velLeft - velRight))/d;
   Serial.print("Forward Velocity: ");
   Serial.print(rhoDot);
-  Serial.pring('\t');
+  Serial.print('\t');
   Serial.print("Rotational Velocity: ");
   Serial.print(phiDot);
   Serial.print('\t');
@@ -174,7 +174,7 @@ void loop() {
   double phi = r*(theta1 - theta2)/d;
 
   // Calculate error
-  double e_phi = phi_des - phi;
+  double e_phi = phi_desired - phi;
 
   // PID for phi
   if (Ts > 0) {
@@ -186,11 +186,11 @@ void loop() {
   I_phi = I_phi + Ts*e_phi; // integral implementation
 
   // PID Output
-  double phi_dot_des = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi;
+  double phi_dot_desired = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi;
 
 
   // Get phi_dot
-  phi_dot = r*(theta1_dot - theta2_dot)/d;
+  double phi_dot = r*(theta1_dot - theta2_dot)/d;
 
   // Calculate error
   double e_phi_dot = phi_dot_desired - phi_dot;
@@ -215,7 +215,7 @@ void loop() {
   if (is_moving && current_time < end_time) {
     rho_dot_desired = forward_distance/move_time;
   } else {
-    rho_dot_desired = 0
+    rho_dot_desired = 0;
   }
 
 
@@ -223,7 +223,7 @@ void loop() {
   double rho_dot = r*(theta1_dot + theta2_dot)/d;
 
   // Calculate error
-  double e_rho_dot = rho_dot_desired - rho_dot
+  double e_rho_dot = rho_dot_desired - rho_dot;
 
   // PID for rho_dot
   if (Ts > 0) {
@@ -245,7 +245,7 @@ void loop() {
     e_phi_dot = sgn(e_phi_dot)*min(umax/Kp_phi_dot, abs(e_phi_dot));
     I_phi_dot = (u_diff-Kp_phi_dot*e_phi_dot-Kd_phi_dot*D_phi_dot)/Ki_phi_dot; 
   }
-  if (abs(uM2) > umax) {
+  if (abs(u_bar) > umax) {
     u_bar = sgn(u_diff)*2*umax;
     e_rho_dot = sgn(e_rho_dot)*min(umax/Kp_rho_dot, abs(e_rho_dot));
     I_rho_dot = (u_diff-Kp_rho_dot*e_rho_dot-Kd_rho_dot*D_rho_dot)/Ki_rho_dot;
@@ -253,8 +253,8 @@ void loop() {
 
 
   // Convert u_bar and u_diff to motor voltages
-  uM1 = (u_bar + u_diff)/2;
-  uM2 = (u_bar - u_diff)/2;
+  double uM1 = (u_bar + u_diff)/2;
+  double uM2 = (u_bar - u_diff)/2;
 
   // Convert to speeds and send to motor
   int speed1 = -uM1*400/umax;
