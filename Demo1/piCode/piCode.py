@@ -6,6 +6,19 @@ from picamera.array import PiRGBArray
 import cv2 as cv
 import math
 
+import board
+import adafruit_character_lcd.character_lcd_rgb_i2c as character_lcd
+
+# LCD Size
+lcd_columns = 16
+lcd_rows = 2
+
+# Initialize I2C bus
+i2c = board.I2C()
+
+# Initialize LCD
+lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
+
 # Calibrates the camera
 # https://picamera.readthedocs.io/en/release-1.13/api_camera.html
 def video_init() -> PiCamera:
@@ -27,7 +40,7 @@ def video_init() -> PiCamera:
     return camera
 
 # Obtains the marker's position
-def video_loop(camera: PiCamera) -> int:
+def video_loop(camera: PiCamera) -> float | None:
     # https://picamera.readthedocs.io/en/release-1.13/api_array.html
     raw_capture = PiRGBArray(camera)
     camera.capture(raw_capture, "bgr")
@@ -43,6 +56,7 @@ def video_loop(camera: PiCamera) -> int:
     
     # Find position and calculate angle
     #We want the bottom center of the y part of the marker because I did all the calibraion on the ground, and I'm assuming that is where the angle is going to be measured in relation to the robot
+    angle = None
     if len(corners) >= 1:
         xSum = corners[0][0][0][0]+ corners[0][0][1][0]+ corners[0][0][2][0]+ corners[0][0][3][0]
         xCenterPixel = xSum/4
@@ -67,11 +81,6 @@ def video_loop(camera: PiCamera) -> int:
 
         #print("Angle in rad:" , angleInRad)
         #print("Angle in degrees:", angle)
-        
-        #Return angle
-        return angle
-
-        
     else:
         # No markers detected
         print("No markets detected")
@@ -79,6 +88,9 @@ def video_loop(camera: PiCamera) -> int:
     # Close raw_capture
     #Is this why it's so slow? are we opening and closing the camera every time?
     raw_capture.close()
+        
+    #Return angle
+    return angle
 
 def video_deinit(camera: PiCamera):
     camera.close()
@@ -95,7 +107,10 @@ if __name__ == "__main__":
     camera = video_init()
     while True:
         angle = video_loop(camera)
-        print("Angle in degrees: ", angle)
+        message = "Angle in degrees: {}".format(angle)
+        print(message)
+        lcd.clear()
+        lcd.message = message
         if was_quit_pressed():
             break
     video_deinit(camera)
