@@ -16,10 +16,10 @@ x_s=[0 0 6 10];
 y_s=[0 0.25 0 0];
 
 %run sim
-%open_system('Part6PID');
-%out=sim('Part6PID');
+open_system('Part6PID');
+out=sim('Part6PID');
 
-sim('Part6PID')
+%sim('Part6PID')
 
 close all;
 %plot results
@@ -28,3 +28,10 @@ plot(out.posx);
 
 figure
 plot(out.posy);
+figure
+plot(out.phi_Des);
+figure
+plot(out.phiDot_Des);
+figure
+plot(out.rhoDot_des);
+
