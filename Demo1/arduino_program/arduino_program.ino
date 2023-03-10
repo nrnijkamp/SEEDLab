@@ -123,11 +123,10 @@ void loop() {
     D_phi = 0;
   }
   e_phi_past = e_phi; // update val to get other vals
-  // I_phi = I_phi + Ts*e_phi; // integral implementation
+  I_phi = I_phi + Ts*e_phi; // integral implementation
 
   // PID Output
-  // double phi_dot_desired = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi;
-  double phi_dot_desired = Kp_phi*e_phi + Kd_phi*D_phi;
+  double phi_dot_desired = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi;
 
 
   // Get phi_dot
@@ -147,7 +146,7 @@ void loop() {
     D_phi_dot = 0;
   }
   e_phi_dot_past = e_phi_dot; // update val to get other vals
-  // I_phi_dot = I_phi_dot+Ts*e_phi_dot; // integral implementation
+  I_phi_dot = I_phi_dot+Ts*e_phi_dot; // integral implementation
 
 
   // Set rho_dot_desired based on task settings and turning progress
@@ -185,13 +184,11 @@ void loop() {
     D_rho_dot = 0;
   }
   e_rho_dot_past = e_rho_dot; // update val to get other vals
-  // I_rho_dot = I_rho_dot + Ts*e_rho_dot; // integral implementation
+  I_rho_dot = I_rho_dot + Ts*e_rho_dot; // integral implementation
 
   // PID Outputs
-  // double u_diff = Kp_phi_dot*e_phi_dot + Ki_phi_dot*I_phi_dot + Kd_phi_dot*D_phi_dot;
-  // double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot;
-  double u_diff = Kp_phi_dot*e_phi_dot + Kd_phi_dot*D_phi_dot;
-  double u_bar = Kp_rho_dot*e_rho_dot + Kd_rho_dot*D_rho_dot;
+  double u_diff = Kp_phi_dot*e_phi_dot + Ki_phi_dot*I_phi_dot + Kd_phi_dot*D_phi_dot;
+  double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot;
 
   Serial.print("\tu_bar: ");
   Serial.print(u_bar);
