@@ -95,7 +95,7 @@ def video_deinit(raw_capture: PiRGBArray):
     raw_capture.close()
     
     # Close camera
-    camera: PiCamera = raw_capture.camera
+    camera = raw_capture.camera
     camera.close()
 
     # Close opencv
