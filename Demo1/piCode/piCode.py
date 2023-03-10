@@ -1,8 +1,6 @@
 # SEED Lab Demo 1
 # Group 3
 
-from typing import Union
-
 from picamera import PiCamera
 from picamera.array import PiRGBArray
 import cv2 as cv
@@ -23,9 +21,8 @@ lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 
 # Calibrates the camera
 # https://picamera.readthedocs.io/en/release-1.13/api_camera.html
-def video_init() -> PiRGBArray:
+def video_init() -> PiCamera:
     camera = PiCamera()
-    camera.resolution = (1920, 1088)
 
     # Set light sensitivity
     camera.iso = 400 
@@ -40,13 +37,12 @@ def video_init() -> PiRGBArray:
     camera.awb_mode = "off"
     camera.awb_gains = gains
 
-    # https://picamera.readthedocs.io/en/release-1.13/api_array.html
-    raw_capture = PiRGBArray(camera, size=(1920, 1088))
-
-    return camera, raw_capture
+    return camera
 
 # Obtains the marker's position
-def video_loop(camera: PiCamera, raw_capture: PiRGBArray) -> Union[float, None]:
+def video_loop(camera: PiCamera) -> float | None:
+    # https://picamera.readthedocs.io/en/release-1.13/api_array.html
+    raw_capture = PiRGBArray(camera)
     camera.capture(raw_capture, "bgr")
     
     # Display image
@@ -59,7 +55,7 @@ def video_loop(camera: PiCamera, raw_capture: PiRGBArray) -> Union[float, None]:
     corners, _ids, _rejected = cv.aruco.detectMarkers(img, arucoDict, parameters = param)
     
     # Find position and calculate angle
-    # We want the bottom center of the y part of the marker because I did all the calibraion on the ground, and I'm assuming that is where the angle is going to be measured in relation to the robot
+    #We want the bottom center of the y part of the marker because I did all the calibraion on the ground, and I'm assuming that is where the angle is going to be measured in relation to the robot
     angle = None
     if len(corners) >= 1:
         xSum = corners[0][0][0][0]+ corners[0][0][1][0]+ corners[0][0][2][0]+ corners[0][0][3][0]
@@ -82,23 +78,22 @@ def video_loop(camera: PiCamera, raw_capture: PiRGBArray) -> Union[float, None]:
 
         angle = round(angle,3)
 
+
         #print("Angle in rad:" , angleInRad)
         #print("Angle in degrees:", angle)
     else:
         # No markers detected
         print("No markets detected")
+
+    # Close raw_capture
+    #Is this why it's so slow? are we opening and closing the camera every time?
+    raw_capture.close()
         
     #Return angle
     return angle
 
-def video_deinit(camera: PiCamera, raw_capture: PiRGBArray):
-    # Close raw_capture
-    raw_capture.close()
-    
-    # Close camera
+def video_deinit(camera: PiCamera):
     camera.close()
-
-    # Close opencv
     cv.destroyAllWindows()
 
 def was_quit_pressed() -> bool:
@@ -109,14 +104,14 @@ def was_quit_pressed() -> bool:
 #Press 'q' to exit the video mode
 # Only runs when not imported
 if __name__ == "__main__":
-    camera, raw_capture = video_init()
+    camera = video_init()
     while True:
-        angle = video_loop(camera, raw_capture)
-        message = "Angle: {}".format(angle)
+        angle = video_loop(camera)
+        message = "Angle in degrees: {}".format(angle)
         print(message)
         lcd.clear()
         lcd.message = message
         if was_quit_pressed():
             break
-    video_deinit(camera, raw_capture)
+    video_deinit(camera)
     print("Done")
