@@ -107,7 +107,7 @@ if __name__ == "__main__":
     camera = video_init()
     while True:
         angle = video_loop(camera)
-        message = "Angle in degrees: {}".format(angle)
+        message = "Angle: {}".format(angle)
         print(message)
         lcd.clear()
         lcd.message = message
