@@ -27,7 +27,8 @@ def video_init() -> PiCamera:
     camera = PiCamera()
 
     # Set light sensitivity
-    camera.iso = 400 
+    camera.iso = 800
+    camera.brightness = 70
     
     camera.shutter_speed = camera.exposure_speed
     camera.exposure_mode = "off"
