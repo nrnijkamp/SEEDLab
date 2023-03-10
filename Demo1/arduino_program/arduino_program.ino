@@ -31,39 +31,17 @@ double I_rho_dot = 0; // integral
 double D_rho_dot = 0; // derivative
 double e_rho_dot_past = 0; // previous value
 
-double Ts = 0; // Time step
-// double Tc = millis() / 1000.0; // Running time
+double Ts = 0.1; // Time step
+double Tc = millis() / 1000.0; // Running time
 
 // Max voltage that can be supplied
-double umax = 7.8;
-
-// encoder for left wheel and right wheel 
-int clkLeft = 2;
-int dtLeft = 6;
-int clkRight = 3;
-int dtRight = 8;
+const double umax = 7.8;
 
 //initialize variables
-float r = 7.5;  // radius of the wheel
-float d = 28; // distance between the wheels
-float dRight, dLeft = 0;
-float velLeft, velRight = 0;
-float deltaTLeft, deltaTRight = 0;
-
-int toldLeft, tnewLeft, toldRight, tnewRight = 0;
-int previousStateLeft, currentStateLeft;
-int previousStateRight, currentStateRight;
+const float r = 7.5;  // radius of the wheel
+const float d = 28; // distance between the wheels
 
 void setup() {
-  pinMode(clkLeft, INPUT_PULLUP); 
-  pinMode(dtLeft, INPUT_PULLUP);
-  pinMode(clkRight, INPUT_PULLUP);
-  pinMode(dtRight, INPUT_PULLUP);
-  previousStateLeft = digitalRead(clkLeft); 
-  previousStateRight = digitalRead(clkRight);
-  attachInterrupt(digitalPinToInterrupt(clkLeft), changePinALeft, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(clkRight), changePinARight, CHANGE);
-  
   // Start serial for output
   Serial.begin(31250);
   
@@ -79,69 +57,18 @@ void setup() {
   Serial.println("Ready!");
 }
 
-// correlates to left wheel
-void changePinALeft() { 
-  tnewLeft = millis();
-  deltaTLeft = tnewLeft - toldLeft;
-  currentStateLeft = digitalRead(clkLeft);
-
-  //verify which direction, if B changes, it is CCW
-if(currentStateLeft != previousStateLeft) {
-  if (digitalRead(dtLeft) != currentStateLeft) {
-    velLeft = r*((4*PI)/(deltaTLeft*30));
-  } else {
-    velLeft = -r*((4*PI)/(deltaTLeft*30));
-  }
-  previousStateLeft = currentStateLeft;
-  dLeft = velLeft*deltaTLeft;
-  output();
-  toldLeft = tnewRight;
- }
-}
-
-//correlates with right wheel
-void changePinARight() { 
-  tnewRight = millis();
-  deltaTRight = tnewRight - toldRight;
-  currentStateRight = digitalRead(clkRight);
-
-  //verify which direction, if B changes, it is CCW
-  if(currentStateRight != previousStateRight) {
-    if (digitalRead(dtRight) != currentStateRight) {
-      velRight = r*((4*PI)/(deltaTRight*30));
-    } else {
-      velRight = -r*((4*PI)/(deltaTRight*30));
-    }
-    previousStateRight = currentStateRight;
-    dRight = velRight*deltaTRight;
-    output();
-    toldRight = tnewRight;
- }
-}
-
-void output() {
-  velLeft = velLeft*100000;
-  velRight = velRight*100000;
-  double rhoDot = (r*(velLeft + velRight))/2;
-  double phiDot = (r*(velLeft - velRight))/d;
-  Serial.print("Forward Velocity: ");
-  Serial.print(rhoDot);
-  Serial.print('\t');
-  Serial.print("Rotational Velocity: ");
-  Serial.print(phiDot);
-  Serial.print('\t');
-}
-
-
 // ---== TASKS ==---
 const double turn_to_angle = 0; // radians
-const double forward_distance = 0; // cm
-const double move_time = 1; // s
+const double forward_distance = 121.92; // cm
+const double move_time = 3; // s
 bool should_turn = false;
-bool should_move = false;
+bool should_move = true;
 
 bool is_moving = false;
 double end_time = 0;
+
+double theta1_old = 0;
+double theta2_old = 0;
 
 void loop() {
   // Set phi_desired based on task settings
@@ -162,16 +89,29 @@ void loop() {
   // Get motor radians
   long ticks1 = knobLeft.read(); //NOTE left may be 2
   long ticks2 = knobRight.read(); //NOTE right may be 1
-  double theta1 = ((double)ticks1/3200)*2*PI;
-  double theta2 = ((double)ticks2/3200)*2*PI;
+  double theta1 = -((double)ticks1/3200)*2*PI;
+  // double theta2 = ((double)ticks2/3200)*2*PI;
+  double theta2 = theta1;
+  Serial.print("\tTheta1: ");
+  Serial.print(theta1);
+  Serial.print("\tTheta2: ");
+  Serial.print(theta2);
   
   // Get motor radian speed
-  double theta1_dot = velLeft;
-  double theta2_dot = velRight;
+  double theta1_dot = (theta1 - theta1_old)/Ts;
+  double theta2_dot = (theta2 - theta2_old)/Ts;
+  // Serial.print("\tTheta1_dot: ");
+  // Serial.print(theta1_dot);
+  // Serial.print("\tTheta2_dot: ");
+  // Serial.print(theta2_dot);
 
 
   // Calculate phi
   double phi = r*(theta1 - theta2)/d;
+  // Serial.print("\tPhi: ");
+  // Serial.print(phi);
+  // Serial.print("\tPhi_des: ");
+  // Serial.print(phi_desired);
 
   // Calculate error
   double e_phi = phi_desired - phi;
@@ -179,18 +119,23 @@ void loop() {
   // PID for phi
   if (Ts > 0) {
     D_phi = (e_phi-e_phi_past)/Ts; // derivative implementation
-    e_phi_past = e_phi; // update val to get other vals
   } else {
     D_phi = 0;
   }
-  I_phi = I_phi + Ts*e_phi; // integral implementation
+  e_phi_past = e_phi; // update val to get other vals
+  // I_phi = I_phi + Ts*e_phi; // integral implementation
 
   // PID Output
-  double phi_dot_desired = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi;
+  // double phi_dot_desired = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi;
+  double phi_dot_desired = Kp_phi*e_phi + Kd_phi*D_phi;
 
 
   // Get phi_dot
   double phi_dot = r*(theta1_dot - theta2_dot)/d;
+  Serial.print("\tPhi_dot: ");
+  Serial.print(phi_dot);
+  Serial.print("\tPhi_dot_des: ");
+  Serial.print(phi_dot_desired);
 
   // Calculate error
   double e_phi_dot = phi_dot_desired - phi_dot;
@@ -198,11 +143,11 @@ void loop() {
   // PID for phi_dot
   if (Ts > 0) {
     D_phi_dot = (e_phi_dot-e_phi_dot_past)/Ts; // derivative implementation
-    e_phi_dot_past = e_phi_dot; // update val to get other vals
   } else {
     D_phi_dot = 0;
   }
-  I_phi_dot = I_phi_dot+Ts*e_phi_dot; // integral implementation
+  e_phi_dot_past = e_phi_dot; // update val to get other vals
+  // I_phi_dot = I_phi_dot+Ts*e_phi_dot; // integral implementation
 
 
   // Set rho_dot_desired based on task settings and turning progress
@@ -217,10 +162,18 @@ void loop() {
   } else {
     rho_dot_desired = 0;
   }
+  // Serial.print("\tCurrent time: ");
+  // Serial.print(current_time);
+  // Serial.print("\tEnd time: ");
+  // Serial.print(end_time);
 
 
   // Get rho_dot
-  double rho_dot = r*(theta1_dot + theta2_dot)/d;
+  double rho_dot = r*(theta1_dot + theta2_dot)/2;
+  Serial.print("\tRho_dot: ");
+  Serial.print(rho_dot);
+  Serial.print("\tRho_dot_des: ");
+  Serial.print(rho_dot_desired);
 
   // Calculate error
   double e_rho_dot = rho_dot_desired - rho_dot;
@@ -228,33 +181,68 @@ void loop() {
   // PID for rho_dot
   if (Ts > 0) {
     D_rho_dot = (e_rho_dot-e_rho_dot_past)/Ts; // derivative implementation
-    e_rho_dot_past = e_rho_dot; // update val to get other vals
   } else {
     D_rho_dot = 0;
   }
-  I_rho_dot = I_rho_dot + Ts*e_rho_dot; // integral implementation
+  e_rho_dot_past = e_rho_dot; // update val to get other vals
+  // I_rho_dot = I_rho_dot + Ts*e_rho_dot; // integral implementation
 
   // PID Outputs
-  double u_diff = Kp_phi_dot*e_phi_dot + Ki_phi_dot*I_phi_dot + Kd_phi_dot*D_phi_dot;
-  double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot;
+  // double u_diff = Kp_phi_dot*e_phi_dot + Ki_phi_dot*I_phi_dot + Kd_phi_dot*D_phi_dot;
+  // double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot;
+  double u_diff = Kp_phi_dot*e_phi_dot + Kd_phi_dot*D_phi_dot;
+  double u_bar = Kp_rho_dot*e_rho_dot + Kd_rho_dot*D_rho_dot;
 
-  // Saturation Checking
-  // (u_diff can't be more than twice the range)
-  if (abs(u_diff) > 2*umax) {
-    u_diff = sgn(u_diff)*2*umax;
-    e_phi_dot = sgn(e_phi_dot)*min(umax/Kp_phi_dot, abs(e_phi_dot));
-    I_phi_dot = (u_diff-Kp_phi_dot*e_phi_dot-Kd_phi_dot*D_phi_dot)/Ki_phi_dot; 
-  }
-  if (abs(u_bar) > umax) {
-    u_bar = sgn(u_diff)*2*umax;
-    e_rho_dot = sgn(e_rho_dot)*min(umax/Kp_rho_dot, abs(e_rho_dot));
-    I_rho_dot = (u_diff-Kp_rho_dot*e_rho_dot-Kd_rho_dot*D_rho_dot)/Ki_rho_dot;
-  }
+  Serial.print("\tu_bar: ");
+  Serial.print(u_bar);
+  Serial.print("\tu_diff: ");
+  Serial.print(u_diff);
 
+  // // Saturation Checking
+  // // (u_diff can't be more than twice the range)
+  // if (abs(u_diff) > umax) {
+  //   u_diff = sgn(u_diff)*umax;
+  //   e_phi_dot = sgn(e_phi_dot)*min(umax/Kp_phi_dot, abs(e_phi_dot));
+  //   // I_phi_dot = (u_diff-Kp_phi_dot*e_phi_dot-Kd_phi_dot*D_phi_dot)/Ki_phi_dot; 
+  // }
+  // if (abs(u_bar) > umax) {
+  //   u_bar = sgn(u_bar)*umax;
+  //   e_rho_dot = sgn(e_rho_dot)*min(umax/Kp_rho_dot, abs(e_rho_dot));
+  //   // I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot-Kd_rho_dot*D_rho_dot)/Ki_rho_dot;
+  // }
+
+  // Update Tc and Ts
+  current_time = millis() / 1000.0;
+  Ts = current_time - Tc;
+  Tc = current_time;
+
+  // Update theta1_old and theta2_old
+  theta1_old = theta1;
+  theta2_old = theta2;
 
   // Convert u_bar and u_diff to motor voltages
   double uM1 = (u_bar + u_diff)/2;
   double uM2 = (u_bar - u_diff)/2;
+  
+  // Saturation Checking
+  if (abs(uM1) > umax) {
+    uM1 = sgn(uM1)*umax;
+  }
+  if (abs(uM2) > umax) {
+    uM2 = sgn(uM2)*umax;
+  }
+  u_bar = uM1 + uM2;
+  u_diff = uM1 - uM2;
+  e_phi_dot = sgn(e_phi_dot)*min(u_diff/Kp_phi_dot, abs(e_phi_dot));
+  I_phi_dot = (u_diff-Kp_phi_dot*e_phi_dot-Kd_phi_dot*D_phi_dot)/Ki_phi_dot; 
+  e_rho_dot = sgn(e_rho_dot)*min(u_bar/Kp_rho_dot, abs(e_rho_dot));
+  I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot-Kd_rho_dot*D_rho_dot)/Ki_rho_dot;
+  
+
+  Serial.print("\tuM1: ");
+  Serial.print(uM1);
+  Serial.print("\tuM2: ");
+  Serial.print(uM2);
 
   // Convert to speeds and send to motor
   int speed1 = -uM1*400/umax;
@@ -262,6 +250,8 @@ void loop() {
   md.setM1Speed(speed1);
   md.setM2Speed(speed2);
   stopIfFault();
+
+  Serial.print("\n");
 }
 
 int sgn(double v) {
