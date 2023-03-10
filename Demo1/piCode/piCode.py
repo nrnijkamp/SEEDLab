@@ -41,7 +41,7 @@ def video_init() -> PiRGBArray:
     camera.awb_gains = gains
 
     # https://picamera.readthedocs.io/en/release-1.13/api_array.html
-    raw_capture = PiRGBArray(camera)
+    raw_capture = PiRGBArray(camera, size=(1920, 1088))
 
     return camera, raw_capture
 
