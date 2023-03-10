@@ -42,10 +42,10 @@ def video_init() -> PiRGBArray:
     # https://picamera.readthedocs.io/en/release-1.13/api_array.html
     raw_capture = PiRGBArray(camera)
 
-    return raw_capture
+    return camera, raw_capture
 
 # Obtains the marker's position
-def video_loop(raw_capture: PiRGBArray) -> Union[float, None]:
+def video_loop(camera: PiCamera, raw_capture: PiRGBArray) -> Union[float, None]:
     camera.capture(raw_capture, "bgr")
     
     # Display image
@@ -90,12 +90,11 @@ def video_loop(raw_capture: PiRGBArray) -> Union[float, None]:
     #Return angle
     return angle
 
-def video_deinit(raw_capture: PiRGBArray):
+def video_deinit(camera: PiCamera, raw_capture: PiRGBArray):
     # Close raw_capture
     raw_capture.close()
     
     # Close camera
-    camera = raw_capture.camera
     camera.close()
 
     # Close opencv
@@ -109,14 +108,14 @@ def was_quit_pressed() -> bool:
 #Press 'q' to exit the video mode
 # Only runs when not imported
 if __name__ == "__main__":
-    camera = video_init()
+    camera, raw_capture = video_init()
     while True:
-        angle = video_loop(camera)
+        angle = video_loop(camera, raw_capture)
         message = "Angle: {}".format(angle)
         print(message)
         lcd.clear()
         lcd.message = message
         if was_quit_pressed():
             break
-    video_deinit(camera)
+    video_deinit(camera, raw_capture)
     print("Done")
