@@ -25,6 +25,7 @@ lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 # https://picamera.readthedocs.io/en/release-1.13/api_camera.html
 def video_init() -> PiRGBArray:
     camera = PiCamera()
+    camera.resolution = (1920, 1088)
 
     # Set light sensitivity
     camera.iso = 400 
