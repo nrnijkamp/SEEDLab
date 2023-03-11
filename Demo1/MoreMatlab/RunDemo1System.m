@@ -13,8 +13,8 @@ J = .05;
 b = .5;
 
 % Block paramters
-xs = [0 1    6 10];
-ys = [0 0.25 3  0];
+xs = [0 3 6 10];
+ys = [0 0 3 3];
 rho_dot_des = 0.2; % ft/s
 r = 7.5 * ft_per_cm; % wheel radius; ft
 d = 28 * ft_per_cm; % turn diameter; ft
