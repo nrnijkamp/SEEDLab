@@ -38,7 +38,7 @@ hold on;
 plot(out.phi);
 plot(out.phi_des);
 legend(["phi", "phi_des"]);
-title("Position");
+title("Angle");
 hold off;
 
 figure;
