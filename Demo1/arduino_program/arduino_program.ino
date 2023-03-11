@@ -146,7 +146,7 @@ void loop() {
     D_phi_dot = 0;
   }
   e_phi_dot_past = e_phi_dot; // update val to get other vals
-  I_phi_dot = I_phi_dot+Ts*e_phi_dot; // integral implementation
+  // I_phi_dot = I_phi_dot + Ts*e_phi_dot; // integral implementation
 
 
   // Set rho_dot_desired based on task settings and turning progress
@@ -184,16 +184,22 @@ void loop() {
     D_rho_dot = 0;
   }
   e_rho_dot_past = e_rho_dot; // update val to get other vals
-  I_rho_dot = I_rho_dot + Ts*e_rho_dot; // integral implementation
+  // I_rho_dot = I_rho_dot + Ts*e_rho_dot; // integral implementation
 
   // PID Outputs
-  double u_diff = Kp_phi_dot*e_phi_dot + Ki_phi_dot*I_phi_dot + Kd_phi_dot*D_phi_dot;
-  double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot;
+  // double u_diff = Kp_phi_dot*e_phi_dot + Ki_phi_dot*I_phi_dot + Kd_phi_dot*D_phi_dot;
+  // double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot;
+  double u_diff = Kp_phi_dot*e_phi_dot + Kd_phi_dot*D_phi_dot;
+  double u_bar = Kp_rho_dot*e_rho_dot + Kd_rho_dot*D_rho_dot;
 
-  Serial.print("\tu_bar: ");
-  Serial.print(u_bar);
+  // Serial.print("\te_rho_dot: ");
+  // Serial.print(e_rho_dot);
+  // Serial.print("\tD_rho_dot: ");
+  // Serial.print(D_rho_dot);
   Serial.print("\tu_diff: ");
   Serial.print(u_diff);
+  Serial.print("\tu_bar: ");
+  Serial.print(u_bar);
 
   // // Saturation Checking
   // // (u_diff can't be more than twice the range)
@@ -231,15 +237,15 @@ void loop() {
   u_bar = uM1 + uM2;
   u_diff = uM1 - uM2;
   e_phi_dot = sgn(e_phi_dot)*min(u_diff/Kp_phi_dot, abs(e_phi_dot));
-  I_phi_dot = (u_diff-Kp_phi_dot*e_phi_dot-Kd_phi_dot*D_phi_dot)/Ki_phi_dot; 
+  // I_phi_dot = (u_diff-Kp_phi_dot*e_phi_dot-Kd_phi_dot*D_phi_dot)/Ki_phi_dot; 
   e_rho_dot = sgn(e_rho_dot)*min(u_bar/Kp_rho_dot, abs(e_rho_dot));
-  I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot-Kd_rho_dot*D_rho_dot)/Ki_rho_dot;
+  // I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot-Kd_rho_dot*D_rho_dot)/Ki_rho_dot;
   
 
-  Serial.print("\tuM1: ");
-  Serial.print(uM1);
-  Serial.print("\tuM2: ");
-  Serial.print(uM2);
+  // Serial.print("\tuM1: ");
+  // Serial.print(uM1);
+  // Serial.print("\tuM2: ");
+  // Serial.print(uM2);
 
   // Convert to speeds and send to motor
   int speed1 = -uM1*400/umax;
