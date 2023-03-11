@@ -5,7 +5,7 @@
 // #define PERIPHERAL_ADDRESS 0x08
 
 Encoder knobLeft(2, 6);
-Encoder knobRight(3, 8);
+Encoder knobRight(3, 5);
 
 DualMC33926MotorShield md;
 
@@ -78,18 +78,18 @@ void loop() {
   } else {
     phi_desired = 0;
   }
-  
+
 
   // Get motor radians
   long ticks1 = knobLeft.read(); //NOTE left may be 2
   long ticks2 = knobRight.read(); //NOTE right may be 1
   double theta1 = -((double)ticks1/3200)*2*PI;
-  // double theta2 = ((double)ticks2/3200)*2*PI;
-  //HACK second encoder not working;
-  // assuming equal motor speeds for forward motion
-  // and opposite speeds for rotation
-  double theta2 = theta1;
-  if (should_turn && !is_moving) theta2 *= -1;
+  double theta2 = ((double)ticks2/3200)*2*PI;
+  // //HACK second encoder not working;
+  // // assuming equal motor speeds for forward motion
+  // // and opposite speeds for rotation
+  // double theta2 = theta1;
+  // if (should_turn && !is_moving) theta2 *= -1;
 
   Serial.print("\tTheta1: ");
   Serial.print(theta1);
