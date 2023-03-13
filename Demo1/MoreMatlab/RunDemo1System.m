@@ -43,6 +43,14 @@ hold off;
 
 figure;
 hold on;
+plot(out.rho_dot);
+plot(out.rho_dot_des);
+legend(["rho_dot", "rho_dot_des"]);
+title("Speed");
+hold off;
+
+figure;
+hold on;
 plot(out.posx.data, out.posy.data);
 plot(xs, ys, ".");
 title("Robot Path");
