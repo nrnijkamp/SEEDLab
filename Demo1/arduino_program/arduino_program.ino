@@ -23,21 +23,21 @@ double currentTime() {
 // double I_phi = 0; // integral
 // double D_phi = 0; // derivative
 // double e_phi_past = 0; // previous value
-const double Kp_phi = 1; //NOTE for manual control
+double Kp_phi = 10.0051896084746; // Hz
   
-double Kp_phi_dot = 6.79421833155554; // V*s/rad - get from simulink  - Second outerloop PD control
-double Ki_phi_dot = 1.11680781548276; // V/rad
-double Kd_phi_dot = 0; // V*s^2/rad
-double I_phi_dot = 0; // integral
+double Kp_phi_dot = 10791.2170261385; // V*s/rad - get from simulink  - Second outerloop PD control
+// double Ki_phi_dot = 1.11680781548276; // V/rad
+double Kd_phi_dot = 2.15324649932964; // V*s^2/rad
+// double I_phi_dot = 0; // integral
 double D_phi_dot = 0; // derivative
 double e_phi_dot_past = 0; // previous value
   
-double Kp_rho_dot = 10.9495569713465; // V*s/m - get from simulink  - Second outerloop PD control
-double Ki_rho_dot = 164.243354570197; // V/m
-double Kd_rho_dot = 0;                // V*s^2/m
+double Kp_rho_dot = 7.14216735267938; // V*s/m - get from simulink  - Second outerloop PD control
+double Ki_rho_dot = 119.884076500748; // V/m
+// double Kd_rho_dot = 0;                // V*s^2/m
 double I_rho_dot = 0; // integral
-double D_rho_dot = 0; // derivative
-double e_rho_dot_past = 0; // previous value
+// double D_rho_dot = 0; // derivative
+// double e_rho_dot_past = 0; // previous value
 
 double Ts = 0.1; // Time step
 double Tc = currentTime(); // Running time
@@ -55,9 +55,9 @@ const double umax = 7;
 
 // ---== TASKS ==---
 const double turn_to_angle = 90.0*PI/180.0; // radians
-const double forward_distance = 3; // ft
-const double move_speed = 2; // ft/s
-bool should_turn = true;
+const double forward_distance = 10.0; // ft
+const double move_speed = 1; // ft/s
+bool should_turn = false;
 bool should_move = true;
 
 bool is_moving = false;
@@ -141,18 +141,19 @@ void loop() {
   // e_phi_past = e_phi; // update val to get other vals
   // I_phi = I_phi + Ts*e_phi; // integral implementation
 
-  // // PID Output
+  // PID Output
   // double phi_dot_desired = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi;
+  double phi_dot_desired = Kp_phi*e_phi;
 
 
   // Get phi_dot
   double phi_dot = r*(theta1_dot - theta2_dot)/d;
   
   // Manual phi_dot_desired control
-  double phi_dot_desired = phi_dot;
-  if (e_phi > 0.1) {
-    phi_dot_desired = e_phi;
-  }
+  // double phi_dot_desired = phi_dot;
+  // if (e_phi > 0.1) {
+  //   phi_dot_desired = e_phi;
+  // }
   Serial.print("\tPhi_dot: ");
   Serial.print(phi_dot);
   Serial.print("\tPhi_dot_des: ");
@@ -169,7 +170,7 @@ void loop() {
   }
   //NOTE uncomment if needed
   // if (sgn(e_phi_dot_past) != sgn(e_phi_dot)) I_phi_dot = 0; // Reset integral on direction switch
-  I_phi_dot = I_phi_dot + Ts*e_phi_dot; // integral implementation
+  // I_phi_dot = I_phi_dot + Ts*e_phi_dot; // integral implementation
   e_phi_dot_past = e_phi_dot; // update val to get other vals
 
 

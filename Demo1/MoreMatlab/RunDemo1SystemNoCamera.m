@@ -13,15 +13,14 @@ J = .05;
 b = .5;
 
 % Block paramters
-xs = [0 3 6 10];
-ys = [0 0 3 3];
-rho_dot_des = 0.2; % ft/s
+phi_des = 180*pi/180; %radians
+rho_dot_des = 0.5; % ft/s
 r = 7.5 * ft_per_cm; % wheel radius; ft
 d = 28 * ft_per_cm; % turn diameter; ft
 
 % Run simulation
-open_system("Demo1System");
-out = sim("Demo1System");
+open_system("Demo1SystemNoCamera");
+out = sim("Demo1SystemNoCamera");
 
 % Plot responses
 close all;
@@ -36,7 +35,7 @@ hold off;
 figure;
 hold on;
 plot(out.phi);
-plot(out.phi_des);
+yline(phi_des);
 legend(["phi", "phi_des"]);
 title("Angle");
 hold off;
@@ -50,8 +49,5 @@ title("Speed");
 hold off;
 
 figure;
-hold on;
 plot(out.posx.data, out.posy.data);
-plot(xs, ys, ".");
 title("Robot Path");
-hold off;
