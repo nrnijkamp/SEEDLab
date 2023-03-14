@@ -12,6 +12,10 @@ DualMC33926MotorShield md;
 const double in_per_cm = 0.3937008;
 const double ft_per_cm = in_per_cm/12;
 
+double currentTime() {
+  return millis()/1000.0;
+}
+
 // PID variables
 // double Kp_phi = 1.59690166461499;  // Hz - get from simulink models - First outerloop PD control
 // double Ki_phi = 0.263957132904492; // Hz^2
@@ -19,7 +23,7 @@ const double ft_per_cm = in_per_cm/12;
 // double I_phi = 0; // integral
 // double D_phi = 0; // derivative
 // double e_phi_past = 0; // previous value
-const Kp_phi = 2; //NOTE for manual control
+const double Kp_phi = 1; //NOTE for manual control
   
 double Kp_phi_dot = 6.79421833155554; // V*s/rad - get from simulink  - Second outerloop PD control
 double Ki_phi_dot = 1.11680781548276; // V/rad
@@ -39,7 +43,7 @@ double Ts = 0.1; // Time step
 double Tc = currentTime(); // Running time
 
 //initialize variables
-const double r = 7.5 * ft_per_cm;  // radius of the wheel
+const double r = 3.0 / 12.0;  // radius of the wheel
 const double d = 28 * ft_per_cm; // distance between the wheels
 const double LEFT_MOTOR_WEIGHT = 0.85;
 const double RIGHT_MOTOR_WEIGHT = 1;
@@ -84,7 +88,12 @@ void setup() {
 
 void loop() {
   // Set phi_desired based on task settings
-  double phi_desired = turn_to_angle;
+  double phi_desired;
+  if (should_turn) {
+    phi_desired = turn_to_angle;    
+  } else {
+    phi_desired = 0;
+  }
 
   // Get motor radians
   long ticks1 = knobRight.read(); //NOTE left
@@ -116,7 +125,7 @@ void loop() {
   double e_phi = phi_desired - phi;
 
   // If error is off enough, start turning again
-  if (is_moving && !paused && e_phi > 5.0*PI/180.0) {
+  if (is_moving && !paused && e_phi > 3.0*PI/180.0) {
     paused = true;
     pause_time = currentTime();
     is_moving = false;
@@ -299,10 +308,6 @@ void loop() {
   stopIfFault();
 
   Serial.print("\n");
-}
-
-double currentTime() {
-  return millis()/1000.0;
 }
 
 int sgn(double v) {
