@@ -25,11 +25,13 @@ double currentTime() {
 // double e_phi_past = 0; // previous value
 double Kp_phi = 10.0051896084746; // Hz
   
-double Kp_phi_dot = 10791.2170261385; // V*s/rad - get from simulink  - Second outerloop PD control
+double Kp_phi_dot = 107.912170261385; // V*s/rad - get from simulink  - Second outerloop PD control
 // double Ki_phi_dot = 1.11680781548276; // V/rad
 double Kd_phi_dot = 2.15324649932964; // V*s^2/rad
 // double I_phi_dot = 0; // integral
 double D_phi_dot = 0; // derivative
+double D_phi_dot_old1 = 0; // derivative
+double D_phi_dot_old2 = 0; // derivative
 double e_phi_dot_past = 0; // previous value
   
 double Kp_rho_dot = 7.14216735267938; // V*s/m - get from simulink  - Second outerloop PD control
@@ -131,7 +133,7 @@ void loop() {
     is_moving = false;
   }
 
-  //NOTE Manual ph_dot_desired control further below
+  //NOTE Manual phi_dot_desired control further below
   // // PID for phi
   // if (Ts > 0) {
   //   D_phi = (e_phi-e_phi_past)/Ts; // derivative implementation
@@ -142,12 +144,14 @@ void loop() {
   // I_phi = I_phi + Ts*e_phi; // integral implementation
 
   // PID Output
-  // double phi_dot_desired = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi;
-  double phi_dot_desired = Kp_phi*e_phi;
+  // double phi_dot_desired = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi; // PID
+  double phi_dot_desired = Kp_phi*e_phi; // P
 
 
   // Get phi_dot
   double phi_dot = r*(theta1_dot - theta2_dot)/d;
+  // Ignore small errors
+  if (e_phi < 1) phi_dot_desired = phi_dot;
   
   // Manual phi_dot_desired control
   // double phi_dot_desired = phi_dot;
@@ -163,11 +167,10 @@ void loop() {
   double e_phi_dot = phi_dot_desired - phi_dot;
   
   // PID for phi_dot
-  if (Ts > 0) {
+  D_phi_dot_old2 = D_phi_dot_old1;
+  D_phi_dot_old1 = D_phi_dot;
     D_phi_dot = (e_phi_dot-e_phi_dot_past)/Ts; // derivative implementation
-  } else {
-    D_phi_dot = 0;
-  }
+  double D_phi_dot_lowpass = (D_phi_dot + D_phi_dot_old1 + D_phi_dot_old2)/3;
   //NOTE uncomment if needed
   // if (sgn(e_phi_dot_past) != sgn(e_phi_dot)) I_phi_dot = 0; // Reset integral on direction switch
   // I_phi_dot = I_phi_dot + Ts*e_phi_dot; // integral implementation
@@ -211,14 +214,14 @@ void loop() {
   double e_rho_dot = rho_dot_desired - rho_dot;
 
   // PID for rho_dot
-  if (Ts > 0) {
-    D_rho_dot = (e_rho_dot-e_rho_dot_past)/Ts; // derivative implementation
-  } else {
-    D_rho_dot = 0;
-  }
-  if (sgn(e_rho_dot_past) != sgn(e_rho_dot)) I_rho_dot = 0; // Reset integral on direction switch
+  // if (Ts > 0) {
+  //   D_rho_dot = (e_rho_dot-e_rho_dot_past)/Ts; // derivative implementation
+  // } else {
+  //   D_rho_dot = 0;
+  // }
+  // if (sgn(e_rho_dot_past) != sgn(e_rho_dot)) I_rho_dot = 0; // Reset integral on direction switch
   I_rho_dot = I_rho_dot + Ts*e_rho_dot; // integral implementation
-  e_rho_dot_past = e_rho_dot; // update val to get other vals
+  // e_rho_dot_past = e_rho_dot; // update val to get other vals
   // Serial.print("\tI_rho_dot:  ");
   // Serial.print(I_rho_dot);
   // Serial.print("\te_rho_dot: ");
@@ -228,10 +231,13 @@ void loop() {
   
 
   // PID Outputs
-  double u_diff = Kp_phi_dot*e_phi_dot + Ki_phi_dot*I_phi_dot + Kd_phi_dot*D_phi_dot;
-  double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot;
-  // double u_diff = Kp_phi_dot*e_phi_dot + Kd_phi_dot*D_phi_dot;
-  // double u_bar = Kp_rho_dot*e_rho_dot + Kd_rho_dot*D_rho_dot;
+  // double u_diff = Kp_phi_dot*e_phi_dot + Ki_phi_dot*I_phi_dot + Kd_phi_dot*D_phi_dot; // PID
+  // double u_diff = Kp_phi_dot*e_phi_dot + Kd_phi_dot*D_phi_dot; // PD
+  double u_diff = Kp_phi_dot*e_phi_dot + Kd_phi_dot*D_phi_dot_lowpass; // PD (filtered)
+
+  // double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot; // PID
+  double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot; // PI
+  // double u_bar = Kp_rho_dot*e_rho_dot + Kd_rho_dot*D_rho_dot; // PD
 
   // Prevent sudden switching
   //NOTE uncomment if needed
@@ -239,10 +245,10 @@ void loop() {
   //   u_bar = u_bar_old / 2;
   // }
   // u_diff_old = u_diff;
-  if (sgn(u_bar) != sgn(u_bar_old) && abs(u_bar_old) > 1) {
-    u_bar = u_bar_old / 2;
-  }
-  u_bar_old = u_bar;
+  // if (sgn(u_bar) != sgn(u_bar_old) && abs(u_bar_old) > 1) {
+  //   u_bar = u_bar_old / 2;
+  // }
+  // u_bar_old = u_bar;
 
   Serial.print("\tu_diff: ");
   Serial.print(u_diff);
@@ -284,12 +290,13 @@ void loop() {
     uM2 = sgn(uM2)*umax;
   }
   //NOTE uncomment if needed
-  // u_bar = uM1 + uM2;
   // u_diff = uM1 - uM2;
   // e_phi_dot = sgn(e_phi_dot)*min(u_diff/Kp_phi_dot, abs(e_phi_dot));
   // I_phi_dot = (u_diff-Kp_phi_dot*e_phi_dot-Kd_phi_dot*D_phi_dot)/Ki_phi_dot; 
+  // u_bar = uM1 + uM2;
   // e_rho_dot = sgn(e_rho_dot)*min(u_bar/Kp_rho_dot, abs(e_rho_dot));
-  // I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot-Kd_rho_dot*D_rho_dot)/Ki_rho_dot;
+  // I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot-Kd_rho_dot*D_rho_dot)/Ki_rho_dot; // PID
+  // I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot)/Ki_rho_dot; // PI
   
 
   Serial.print("\tuM1: ");
