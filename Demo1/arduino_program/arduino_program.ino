@@ -25,9 +25,9 @@ double currentTime() {
 // double e_phi_past = 0; // previous value
 double Kp_phi = 10.0051896084746; // Hz
   
-double Kp_phi_dot = 107.912170261385; // V*s/rad - get from simulink  - Second outerloop PD control
+double Kp_phi_dot = 10.22597888102; // V*s/rad - get from simulink  - Second outerloop PD control
 // double Ki_phi_dot = 1.11680781548276; // V/rad
-double Kd_phi_dot = 2.15324649932964; // V*s^2/rad
+double Kd_phi_dot = 0; // V*s^2/rad
 // double I_phi_dot = 0; // integral
 double D_phi_dot = 0; // derivative
 double D_phi_dot_old1 = 0; // derivative
@@ -53,17 +53,18 @@ const double RIGHT_MOTOR_WEIGHT = 1;
 // Max voltage that can be supplied
 // NOTE should be set depending on charge
 // const double umax = 7.8;
-const double umax = 7;
+const double umax = 6;
 
 // ---== TASKS ==---
-const double turn_to_angle = 90.0*PI/180.0; // radians
-const double forward_distance = 10.0; // ft
+const double turn_to_angle = 45.0*PI/180.0; // radians
+const double forward_distance = 10; // ft
 const double move_speed = 1; // ft/s
-bool should_turn = false;
+bool should_turn = true;
 bool should_move = true;
 
 bool is_moving = false;
 double end_time = 0;
+double distance_traveled = 0;
 bool paused = false;
 double pause_time = 0;
 
@@ -108,8 +109,8 @@ void loop() {
   Serial.print(theta2);
   
   // Get motor radian speed
-  double theta1_dot = (theta1 - theta1_old)/Ts;
-  double theta2_dot = (theta2 - theta2_old)/Ts;
+  double theta1_dot = (theta1 - theta1_old)/(Ts);
+  double theta2_dot = (theta2 - theta2_old)/(Ts);
   // Serial.print("\tTheta1_dot: ");
   // Serial.print(theta1_dot);
   // Serial.print("\tTheta2_dot: ");
@@ -127,21 +128,11 @@ void loop() {
   double e_phi = phi_desired - phi;
 
   // If error is off enough, start turning again
-  if (is_moving && !paused && e_phi > 3.0*PI/180.0) {
-    paused = true;
-    pause_time = currentTime();
-    is_moving = false;
-  }
-
-  //NOTE Manual phi_dot_desired control further below
-  // // PID for phi
-  // if (Ts > 0) {
-  //   D_phi = (e_phi-e_phi_past)/Ts; // derivative implementation
-  // } else {
-  //   D_phi = 0;
+  // if (is_moving && !paused && e_phi > 3.0*PI/180.0) {
+  //   paused = true;
+  //   pause_time = currentTime();
+  //   is_moving = false;
   // }
-  // e_phi_past = e_phi; // update val to get other vals
-  // I_phi = I_phi + Ts*e_phi; // integral implementation
 
   // PID Output
   // double phi_dot_desired = Kp_phi*e_phi + Ki_phi*I_phi + Kd_phi*D_phi; // PID
@@ -150,14 +141,8 @@ void loop() {
 
   // Get phi_dot
   double phi_dot = r*(theta1_dot - theta2_dot)/d;
-  // Ignore small errors
-  if (e_phi < 1) phi_dot_desired = phi_dot;
-  
-  // Manual phi_dot_desired control
-  // double phi_dot_desired = phi_dot;
-  // if (e_phi > 0.1) {
-  //   phi_dot_desired = e_phi;
-  // }
+  // Ignore small errors while driving
+  if (is_moving && e_phi < 0.05) phi_dot_desired = phi_dot;
   Serial.print("\tPhi_dot: ");
   Serial.print(phi_dot);
   Serial.print("\tPhi_dot_des: ");
@@ -169,7 +154,7 @@ void loop() {
   // PID for phi_dot
   D_phi_dot_old2 = D_phi_dot_old1;
   D_phi_dot_old1 = D_phi_dot;
-    D_phi_dot = (e_phi_dot-e_phi_dot_past)/Ts; // derivative implementation
+  D_phi_dot = (e_phi_dot-e_phi_dot_past)/Ts; // derivative implementation
   double D_phi_dot_lowpass = (D_phi_dot + D_phi_dot_old1 + D_phi_dot_old2)/3;
   //NOTE uncomment if needed
   // if (sgn(e_phi_dot_past) != sgn(e_phi_dot)) I_phi_dot = 0; // Reset integral on direction switch
@@ -180,19 +165,24 @@ void loop() {
   // Set rho_dot_desired based on task settings and turning progress
   double rho_dot_desired;
   double current_time = currentTime();
-  if (should_move && !is_moving && e_phi < 0.1) {
+  if (should_move && !is_moving && e_phi < 0.02) {
     is_moving = true;
-    double move_time = forward_distance/move_speed;
-    if (paused) {
-      // Resume moving if was paused
-      paused = false;
-      double paused_for = current_time - pause_time;
-      end_time += paused_for;
-    } else {
-      end_time = current_time + move_time;
-    }
+    // double move_time = forward_distance/move_speed;
+    // if (paused) {
+    //   // Resume moving if was paused
+    //   paused = false;
+    //   double paused_for = current_time - pause_time;
+    //   end_time += paused_for;
+    // } else {
+    //   end_time = current_time + move_time;
+    // }
   }
-  if (is_moving && current_time < end_time) {
+  // if (is_moving && current_time < end_time) {
+  //   rho_dot_desired = move_speed;
+  // } else {
+  //   rho_dot_desired = 0;
+  // }
+  if (is_moving && distance_traveled < forward_distance) {
     rho_dot_desired = move_speed;
   } else {
     rho_dot_desired = 0;
@@ -205,10 +195,13 @@ void loop() {
 
   // Get rho_dot
   double rho_dot = r*(theta1_dot + theta2_dot)/2;
+  distance_traveled += rho_dot*Ts;
   Serial.print("\tRho_dot: ");
   Serial.print(rho_dot);
   Serial.print("\tRho_dot_des: ");
   Serial.print(rho_dot_desired);
+  Serial.print("\tDistance: ");
+  Serial.print(distance_traveled);
 
   // Calculate error
   double e_rho_dot = rho_dot_desired - rho_dot;
@@ -220,7 +213,7 @@ void loop() {
   //   D_rho_dot = 0;
   // }
   // if (sgn(e_rho_dot_past) != sgn(e_rho_dot)) I_rho_dot = 0; // Reset integral on direction switch
-  I_rho_dot = I_rho_dot + Ts*e_rho_dot; // integral implementation
+  I_rho_dot += Ts*e_rho_dot; // integral implementation
   // e_rho_dot_past = e_rho_dot; // update val to get other vals
   // Serial.print("\tI_rho_dot:  ");
   // Serial.print(I_rho_dot);
@@ -231,13 +224,19 @@ void loop() {
   
 
   // PID Outputs
+  // double Kp_phi_dot_mod = Kp_phi_dot / 10;
+  // if (!is_moving) Kp_phi_dot_mod /= 2; // Turn slower for larger inital angles
+
   // double u_diff = Kp_phi_dot*e_phi_dot + Ki_phi_dot*I_phi_dot + Kd_phi_dot*D_phi_dot; // PID
   // double u_diff = Kp_phi_dot*e_phi_dot + Kd_phi_dot*D_phi_dot; // PD
   double u_diff = Kp_phi_dot*e_phi_dot + Kd_phi_dot*D_phi_dot_lowpass; // PD (filtered)
 
-  // double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot; // PID
-  double u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot; // PI
-  // double u_bar = Kp_rho_dot*e_rho_dot + Kd_rho_dot*D_rho_dot; // PD
+  double u_bar;
+  if (is_moving) {
+    // u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot + Kd_rho_dot*D_rho_dot; // PID
+    u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot; // PI
+    // u_bar = Kp_rho_dot*e_rho_dot + Kd_rho_dot*D_rho_dot; // PD
+  } else u_bar = 0;
 
   // Prevent sudden switching
   //NOTE uncomment if needed
@@ -299,10 +298,10 @@ void loop() {
   // I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot)/Ki_rho_dot; // PI
   
 
-  Serial.print("\tuM1: ");
-  Serial.print(uM1);
-  Serial.print("\tuM2: ");
-  Serial.print(uM2);
+  // Serial.print("\tuM1: ");
+  // Serial.print(uM1);
+  // Serial.print("\tuM2: ");
+  // Serial.print(uM2);
 
   // Convert to speeds and send to motor
   int speed1 = uM1*400/umax;
