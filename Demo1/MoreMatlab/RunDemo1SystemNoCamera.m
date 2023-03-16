@@ -13,7 +13,7 @@ J = .05;
 b = .5;
 
 % Block paramters
-phi_des = 180*pi/180; %radians
+phi_des = 45*pi/180; %radians
 rho_dot_des = 0.5; % ft/s
 r = 7.5 * ft_per_cm; % wheel radius; ft
 d = 28 * ft_per_cm; % turn diameter; ft
@@ -30,24 +30,36 @@ plot(out.posx);
 plot(out.posy);
 legend(["x", "y"]);
 title("Position");
+xlabel("Distance (ft)");
+ylabel("Time (s)");
 hold off;
+% exportgraphics(gcf, "position_plot.png");
 
 figure;
 hold on;
 plot(out.phi);
 yline(phi_des);
-legend(["phi", "phi_des"]);
+legend(["phi", "phi desired"]);
 title("Angle");
+xlabel("Angle (radians)");
+ylabel("Time (s)");
 hold off;
+% exportgraphics(gcf, "angle_plot.png");
 
 figure;
 hold on;
 plot(out.rho_dot);
 yline(rho_dot_des);
-legend(["rho_dot", "rho_dot_des"]);
+legend(["rho dot", "rho dot desired"]);
 title("Speed");
+xlabel("Velocity (ft/s)");
+ylabel("Time (s)");
 hold off;
+% exportgraphics(gcf, "speed_plot.png");
 
 figure;
 plot(out.posx.data, out.posy.data);
 title("Robot Path");
+xlabel("$x$ (ft)", "Interpreter", "latex");
+ylabel("$y$ (ft)", "Interpreter", "latex");
+% exportgraphics(gcf, "path_plot.png");
