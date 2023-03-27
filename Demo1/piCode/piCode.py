@@ -93,7 +93,7 @@ def video_loop(camera: PiCamera) -> Union[float, None]:
     raw_capture.close()
         
     #Return angle
-    return angle
+    return (angle, xDistanceInFeet, yDistanceInFeet)
 
 def video_deinit(camera: PiCamera):
     camera.close()
@@ -109,7 +109,10 @@ def was_quit_pressed() -> bool:
 if __name__ == "__main__":
     camera = video_init()
     while True:
-        angle = video_loop(camera)
+        result = video_loop(camera)
+        angle = result[0]
+        xDistanceInFeet = result[1]
+        yDistanceInFeet = result[2]
         message = "Angle: {}".format(angle)
         print(message)
         lcd.clear()
