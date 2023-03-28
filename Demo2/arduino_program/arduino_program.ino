@@ -2,9 +2,9 @@
 
 #include <DualMC33926MotorShield.h>
 #include <Encoder.h>
-// #include <Wire.h>
+#include <Wire.h>
 
-// #define PERIPHERAL_ADDRESS 0x08
+#define PERIPHERAL_ADDRESS 0x08
 
 Encoder knobLeft(2, 6);
 Encoder knobRight(3, 5);
@@ -48,15 +48,17 @@ const double RIGHT_MOTOR_WEIGHT = 1;
 const double umax = 6;
 
 // ---== TASKS ==---
-//BUG negative angles do no appear to work
-const double turn_to_angle = 0.0*PI/180.0; // radians
-const double forward_distance = 10; // ft
-const double move_speed = 1; // ft/s
 bool should_turn = false;
-bool should_move = true;
+bool should_move = false;
+double turn_by_angle = 0.0*PI/180.0; // radians
+double forward_distance = 0; // ft
+const double move_speed = 1; // ft/s
+const double search_speed = 45.0*PI/180.0; // radians/s
 
+bool is_searching = false;
 bool is_moving = false;
 double distance_traveled = 0;
+double turn_to_angle = 0;
 
 double theta1_old = 0;
 double theta2_old = 0;
@@ -70,20 +72,24 @@ void setup() {
   // Initialize motor
   md.init();
 
-  // // Initialize i2c as peripheral
-  // Wire.begin(PERIPHERAL_ADDRESS);
+  // Initialize i2c as peripheral
+  Wire.begin(PERIPHERAL_ADDRESS);
 
-  // // Set I2C callbacks
-  // Wire.onReceive(receiveData);
+  // Set I2C callbacks
+  Wire.onReceive(receiveData);
 
   Serial.println("Ready!");
 }
 
 void loop() {
+  // Update target angle
+  turn_to_angle += turn_by_angle;
+  turn_by_angle = 0;
+
   // Set phi_desired based on task settings
   double phi_desired;
   if (should_turn) {
-    phi_desired = turn_to_angle;    
+    phi_desired = turn_to_angle;
   } else {
     phi_desired = 0;
   }
@@ -99,8 +105,8 @@ void loop() {
   Serial.print(theta2);
   
   // Get motor radian speed
-  double theta1_dot = (theta1 - theta1_old)/(Ts);
-  double theta2_dot = (theta2 - theta2_old)/(Ts);
+  double theta1_dot = (theta1 - theta1_old)/Ts;
+  double theta2_dot = (theta2 - theta2_old)/Ts;
   // Serial.print("\tTheta1_dot: ");
   // Serial.print(theta1_dot);
   // Serial.print("\tTheta2_dot: ");
@@ -118,13 +124,17 @@ void loop() {
   double e_phi = phi_desired - phi;
 
   // PID Output
-  double phi_dot_desired = Kp_phi*e_phi; // P
+  double phi_dot_desired;
+  if (!is_searching) phi_dot_desired = Kp_phi*e_phi; // P
+  else phi_dot_desired = search_speed;
 
 
   // Get phi_dot
   double phi_dot = r*(theta1_dot - theta2_dot)/d;
-  // Ignore small errors while driving
-  if (is_moving && e_phi < 0.05) phi_dot_desired = phi_dot;
+  //NOTE uncomment if needed
+  // // BUG robot jittering after turning
+  // // Ignore small errors while driving
+  // if (is_moving && abs_bnd(e_phi) < 0.05) phi_dot_desired = phi_dot;
   Serial.print("\tPhi_dot: ");
   Serial.print(phi_dot);
   Serial.print("\tPhi_dot_des: ");
@@ -142,13 +152,12 @@ void loop() {
 
 
   // Set rho_dot_desired based on task settings and turning progress
-  //FIXME should only stop turning when e_phi_dot is also low
   double rho_dot_desired;
   double current_time = currentTime();
-  if (should_move && !is_moving && e_phi < 0.02) {
+  if (should_move && !is_moving && abs(e_phi) < 0.02 && abs(e_phi_dot) < 0.02) {
     is_moving = true;
   }
-  if (is_moving && distance_traveled < forward_distance) {
+  if (is_moving && !is_searching && distance_traveled < forward_distance) {
     rho_dot_desired = move_speed;
   } else {
     rho_dot_desired = 0;
@@ -241,10 +250,35 @@ void loop() {
   Serial.print("\n");
 }
 
+// Get data from raspberry pi
+void receiveData(int _byte_count) {
+  byte command = Wire.read();
+
+  if (command == 0) {
+    // Search for marker
+    is_searching = true;
+  } else {
+    // Update angle and distance
+    byte angle = Wire.read();
+    byte distance = Wire.read();
+    //TODO do calculations on angle and distance
+    turn_by_angle += angle;
+    distance_traveled = 0;
+    forward_distance = distance;
+  }
+}
+
 int sgn(double v) {
   if (v >= 0) return 1;
   else return -1;
 }
+
+//NOTE uncomment if needed
+// double abs_bnd(double x, double b) {
+//   double y = abs(x);
+//   if (y <= b) return x;
+//   else return y;
+// };
 
 void stopIfFault() {
   if (md.getFault()) {
