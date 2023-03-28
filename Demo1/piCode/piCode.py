@@ -59,9 +59,7 @@ def video_loop(camera: PiCamera) -> Union[float, None]:
     
     # Find position and calculate angle
     #We want the bottom center of the y part of the marker because I did all the calibraion on the ground, and I'm assuming that is where the angle is going to be measured in relation to the robot
-    angle = 0
-    xDistanceInFeet = 0
-    yDistanceInFeet = 0
+    angle = None
     if len(corners) >= 1:
         xSum = corners[0][0][0][0]+ corners[0][0][1][0]+ corners[0][0][2][0]+ corners[0][0][3][0]
         xCenterPixel = xSum/4
@@ -95,7 +93,7 @@ def video_loop(camera: PiCamera) -> Union[float, None]:
     raw_capture.close()
         
     #Return angle
-    return (angle, xDistanceInFeet, yDistanceInFeet, len(corners))
+    return angle
 
 def video_deinit(camera: PiCamera):
     camera.close()
@@ -111,12 +109,7 @@ def was_quit_pressed() -> bool:
 if __name__ == "__main__":
     camera = video_init()
     while True:
-        result = video_loop(camera)
-        angle = result[0]
-        xDistanceInFeet = result[1]
-        yDistanceInFeet = result[2]
-        #if detectMarker >= 1, there is a marker. If ==0, no marker
-        detectMarker = result[3]
+        angle = video_loop(camera)
         message = "Angle: {}".format(angle)
         print(message)
         lcd.clear()
