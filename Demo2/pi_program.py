@@ -50,6 +50,7 @@ def send_instruction(
     distance_byte = int((distance*255)//MAX_DIST)
     if distance_byte < 0: distance_byte = 0
     if 255 < distance_byte: distance_byte = 255
+    print("Bytes {} and {}".format(distance_byte, angle_byte))
 
     # Send info to arduino
     bus.write_byte(ADDRESS, MOVE_INST)
@@ -81,6 +82,7 @@ while True:
         dist = math.sqrt(x_dist**2 + y_dist**2)
         if (abs(dist - last_dist) < 0.1): continue
         if (abs(angle - last_angle) < 0.1): continue
+        print("Sending {} and {}".format(dist, angle))
         send_instruction(False, angle, dist)
         searching = False
         last_angle = angle
