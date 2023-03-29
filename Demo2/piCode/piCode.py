@@ -1,6 +1,6 @@
 # SEED Lab, Team 3, Demo 2
 
-from typing import Union
+from typing import Any
 
 from picamera import PiCamera
 from picamera.array import PiRGBArray
@@ -42,7 +42,7 @@ def video_init() -> PiCamera:
     return camera
 
 # Obtains the marker's position
-def video_loop(camera: PiCamera) -> tuple[float, float, float, int]:
+def video_loop(camera: PiCamera) -> Any:
     # https://picamera.readthedocs.io/en/release-1.13/api_array.html
     raw_capture = PiRGBArray(camera)
     camera.capture(raw_capture, "bgr")

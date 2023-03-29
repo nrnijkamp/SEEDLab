@@ -46,7 +46,7 @@ def send_instruction(
     lcd.message = "Angle: {:.2}".format(angle)
 
     # Convert data to bytes (0-255)
-    angle_byte = int((angle*255)//(2*math.pi)) % 256
+    angle_byte = int((angle+math.pi)*255//(2*math.pi)) % 256
     distance_byte = int((distance*255)//MAX_DIST)
     if distance_byte < 0: distance_byte = 0
     if 255 < distance_byte: distance_byte = 255
