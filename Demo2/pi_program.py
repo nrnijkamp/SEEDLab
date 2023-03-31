@@ -50,13 +50,13 @@ def send_instruction(
     distance_byte = int((distance*255)//MAX_DIST)
     if distance_byte < 0: distance_byte = 0
     if 255 < distance_byte: distance_byte = 255
-    print("Bytes {} and {}".format(distance_byte, angle_byte))
+    print("Bytes {} and {}".format(angle_byte, distance_byte))
 
     # Send info to arduino
     # bus.write_byte(ADDRESS, MOVE_INST)
     # bus.write_byte(ADDRESS, angle_byte)
     # bus.write_byte(ADDRESS, distance_byte)
-    bus.write_block_data(ADDRESS, MOVE_INST, [angle_byte, distance_byte])
+    bus.write_i2c_block_data(ADDRESS, MOVE_INST, [angle_byte, distance_byte])
 
 # Calibrate camera
 camera = pi_camera.video_init()
