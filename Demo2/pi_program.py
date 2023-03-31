@@ -53,9 +53,10 @@ def send_instruction(
     print("Bytes {} and {}".format(distance_byte, angle_byte))
 
     # Send info to arduino
-    bus.write_byte(ADDRESS, MOVE_INST)
-    bus.write_byte(ADDRESS, angle_byte)
-    bus.write_byte(ADDRESS, distance_byte)
+    # bus.write_byte(ADDRESS, MOVE_INST)
+    # bus.write_byte(ADDRESS, angle_byte)
+    # bus.write_byte(ADDRESS, distance_byte)
+    bus.write_block_data(ADDRESS, MOVE_INST, [angle_byte, distance_byte])
 
 # Calibrate camera
 camera = pi_camera.video_init()
