@@ -46,10 +46,12 @@ def send_instruction(
     lcd.message = "Angle: {:.2}".format(angle)
 
     # Convert data to bytes (0-255)
-    angle_byte = int((angle+180)*255/360) % 256
+    angle *= math.pi/180
+    angle_byte = int((angle+math.pi)*255//(2*math.pi)) % 256
     distance_byte = int((distance*255)//MAX_DIST)
     if distance_byte < 0: distance_byte = 0
     if 255 < distance_byte: distance_byte = 255
+    print("Sending {} and {}".format(angle, distance))
     print("Bytes {} and {}".format(angle_byte, distance_byte))
 
     # Send info to arduino
@@ -83,7 +85,6 @@ while True:
         dist = math.sqrt(x_dist**2 + y_dist**2)
         if (abs(dist - last_dist) < 0.1): continue
         if (abs(angle - last_angle) < 0.1): continue
-        print("Sending {} and {}".format(dist, angle))
         send_instruction(False, angle, dist)
         searching = False
         last_angle = angle
