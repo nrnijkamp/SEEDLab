@@ -113,6 +113,7 @@ def on_show(mat: Any):
     image = mat
 
 def display_thread_fn():
+    global should_show
     while True:
         if should_show:
             cv.imshow("Image", image)
