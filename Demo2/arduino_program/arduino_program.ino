@@ -100,10 +100,10 @@ void loop() {
   long ticks2 = knobLeft.read(); //NOTE right
   double theta1 = -((double)ticks1/3200)*2*PI;
   double theta2 = ((double)ticks2/3200)*2*PI;
-  Serial.print("\tTheta1: ");
-  Serial.print(theta1);
-  Serial.print("\tTheta2: ");
-  Serial.print(theta2);
+  // Serial.print("\tTheta1: ");
+  // Serial.print(theta1);
+  // Serial.print("\tTheta2: ");
+  // Serial.print(theta2);
   
   // Get motor radian speed
   double theta1_dot = (theta1 - theta1_old)/Ts;
@@ -116,10 +116,10 @@ void loop() {
 
   // Calculate phi
   double phi = r*(theta1 - theta2)/d;
-  Serial.print("\tPhi: ");
-  Serial.print(phi);
-  Serial.print("\tPhi_des: ");
-  Serial.print(phi_desired);
+  // Serial.print("\tPhi: ");
+  // Serial.print(phi);
+  // Serial.print("\tPhi_des: ");
+  // Serial.print(phi_desired);
 
   // Calculate error
   double e_phi = phi_desired - phi;
@@ -139,10 +139,10 @@ void loop() {
   // // BUG robot jittering after turning
   // // Ignore small errors while driving
   // if (is_moving && abs_bnd(e_phi) < 0.05) phi_dot_desired = phi_dot;
-  Serial.print("\tPhi_dot: ");
-  Serial.print(phi_dot);
-  Serial.print("\tPhi_dot_des: ");
-  Serial.print(phi_dot_desired);
+  // Serial.print("\tPhi_dot: ");
+  // Serial.print(phi_dot);
+  // Serial.print("\tPhi_dot_des: ");
+  // Serial.print(phi_dot_desired);
 
   // Calculate error
   double e_phi_dot = phi_dot_desired - phi_dot;
@@ -178,12 +178,12 @@ void loop() {
   // Get rho_dot
   double rho_dot = r*(theta1_dot + theta2_dot)/2;
   distance_traveled += rho_dot*Ts;
-  Serial.print("\tRho_dot: ");
-  Serial.print(rho_dot);
-  Serial.print("\tRho_dot_des: ");
-  Serial.print(rho_dot_desired);
-  Serial.print("\tDistance: ");
-  Serial.print(distance_traveled);
+  // Serial.print("\tRho_dot: ");
+  // Serial.print(rho_dot);
+  // Serial.print("\tRho_dot_des: ");
+  // Serial.print(rho_dot_desired);
+  // Serial.print("\tDistance: ");
+  // Serial.print(distance_traveled);
 
   // Calculate error
   double e_rho_dot = rho_dot_desired - rho_dot;
@@ -207,10 +207,10 @@ void loop() {
     u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot; // PI
   } else u_bar = 0;
 
-  Serial.print("\tu_diff: ");
-  Serial.print(u_diff);
-  Serial.print("\tu_bar: ");
-  Serial.print(u_bar);
+  // Serial.print("\tu_diff: ");
+  // Serial.print(u_diff);
+  // Serial.print("\tu_bar: ");
+  // Serial.print(u_bar);
 
   // Update Tc and Ts
   current_time = currentTime();
@@ -254,7 +254,7 @@ void loop() {
   md.setM2Speed(speed2); // right
   stopIfFault();
 
-  Serial.print("\n");
+  // Serial.print("\n");
 }
 
 // Get data from raspberry pi
