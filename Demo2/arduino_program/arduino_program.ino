@@ -48,12 +48,13 @@ const double RIGHT_MOTOR_WEIGHT = 1;
 const double umax = 6;
 
 // ---== TASKS ==---
-bool should_turn = false;
-bool should_move = false;
+bool should_turn = true;
+bool should_move = true;
 double turn_by_angle = 0.0*PI/180.0; // radians
 double forward_distance = 0; // ft
 const double move_speed = 1; // ft/s
-const double search_speed = 45.0*PI/180.0; // radians/s
+const double search_speed = 90.0*PI/180.0; // radians/s
+const double max_turn_speed = 180.0*PI/180.0; // radians/s
 
 bool is_searching = false;
 bool is_moving = false;
@@ -127,6 +128,9 @@ void loop() {
   double phi_dot_desired;
   if (!is_searching) phi_dot_desired = Kp_phi*e_phi; // P
   else phi_dot_desired = search_speed;
+  // Bound phi_dot_desired
+  if (abs(phi_dot_desired) > max_turn_speed)
+    phi_dot_desired = sgn(phi_dot_desired)*max_turn_speed;
 
 
   // Get phi_dot
@@ -142,6 +146,9 @@ void loop() {
 
   // Calculate error
   double e_phi_dot = phi_dot_desired - phi_dot;
+  // Prevent jittering
+  if (abs(phi_dot) > abs(phi_dot_desired) && abs(phi_dot_desired) < 1.5*abs(phi_dot))
+    e_phi_dot = 0;
   
   // PID for phi_dot
   D_phi_dot_old2 = D_phi_dot_old1;
@@ -251,21 +258,35 @@ void loop() {
 }
 
 // Get data from raspberry pi
+const double MAX_DIST = 10;
 void receiveData(int _byte_count) {
   byte command = Wire.read();
+  Serial.print(command);
 
   if (command == 0) {
     // Search for marker
     is_searching = true;
   } else {
     // Update angle and distance
-    byte angle = Wire.read();
-    byte distance = Wire.read();
-    //TODO do calculations on angle and distance
+    byte angle_byte = Wire.read();
+    byte distance_byte = Wire.read();
+    Serial.print("\t");
+    Serial.print(angle_byte);
+    Serial.print("\t");
+    Serial.print(distance_byte);
+    Serial.print("\t");
+    
+    double angle = angle_byte*PI*2/255 - PI;
+    double distance = distance_byte*MAX_DIST/255;
+    Serial.print(angle);
+    Serial.print("\t");
+    Serial.print(distance);
+
     turn_by_angle += angle;
     distance_traveled = 0;
     forward_distance = distance;
   }
+  Serial.print("\n");
 }
 
 int sgn(double v) {
