@@ -68,7 +68,7 @@ camera = pi_camera.video_init()
 send_instruction(True)
 
 # Start display thread
-pi_camera.display_thread.run()
+pi_camera.display_thread.start()
 
 # Program loop
 searching = True

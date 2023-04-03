@@ -127,7 +127,7 @@ display_thread.daemon = True
 # Only runs when not imported
 if __name__ == "__main__":
     camera = video_init()
-    display_thread.run()
+    display_thread.start()
     while True:
         #if detectMarker >= 1, there is a marker. If ==0, no marker
         angle, xDistanceInFeet, yDistanceInFeet, detectMarker = video_loop(camera, on_show)
