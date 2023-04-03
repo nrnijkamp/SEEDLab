@@ -107,7 +107,7 @@ def was_quit_pressed() -> bool:
 # Image display thread code
 should_show = False
 image = None
-def on_show(mat: cv.Mat):
+def on_show(mat: Any):
     global should_show, image
     should_show = True
     image = mat
