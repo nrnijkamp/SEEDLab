@@ -2,6 +2,7 @@
 # Dawson J. Gullickson
 
 import math
+from threading import Thread
 from typing import Optional
 
 import smbus2
@@ -66,13 +67,16 @@ camera = pi_camera.video_init()
 # Send initial searching instruction
 send_instruction(True)
 
+# Start display thread
+pi_camera.display_thread.run()
+
 # Program loop
 searching = True
 last_angle = 0.0
 last_dist = 0.0
 while True:
     # Get the quadrant the marker is in
-    angle, x_dist, y_dist, corners = pi_camera.video_loop(camera)
+    angle, x_dist, y_dist, corners = pi_camera.video_loop(camera, pi_camera.on_show)
 
     # Send instruction
     if corners == 0:

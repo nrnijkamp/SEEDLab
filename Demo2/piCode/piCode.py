@@ -1,5 +1,6 @@
 # SEED Lab, Team 3, Demo 2
 
+from threading import Thread
 from typing import Any
 
 from picamera import PiCamera
@@ -42,7 +43,7 @@ def video_init() -> PiCamera:
     return camera
 
 # Obtains the marker's position
-def video_loop(camera: PiCamera) -> Any:
+def video_loop(camera: PiCamera, on_show: Any) -> Any:
     # https://picamera.readthedocs.io/en/release-1.13/api_array.html
     raw_capture = PiRGBArray(camera)
     camera.capture(raw_capture, "bgr")
@@ -50,7 +51,7 @@ def video_loop(camera: PiCamera) -> Any:
     # Display image
     img = raw_capture.array
     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    cv.imshow("Image", img)
+    on_show(img)
     
     arucoDict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_5X5_1000)
     param = cv.aruco.DetectorParameters_create()
@@ -103,14 +104,32 @@ def video_deinit(camera: PiCamera):
 def was_quit_pressed() -> bool:
     return cv.waitKey(1) == ord('q')
 
+# Image display thread code
+should_show = False
+image = None
+def on_show(mat: cv.Mat):
+    global should_show, image
+    should_show = True
+    image = mat
+
+def display_thread_fn():
+    while True:
+        if should_show:
+            cv.imshow("Image", image)
+            should_show = False
+display_thread = Thread(target=display_thread_fn)
+# Allow program to exit while thread is running
+display_thread.daemon = True
+
 # Driver code
 # Press 'q' to exit the video mode
 # Only runs when not imported
 if __name__ == "__main__":
     camera = video_init()
+    display_thread.run()
     while True:
         #if detectMarker >= 1, there is a marker. If ==0, no marker
-        angle, xDistanceInFeet, yDistanceInFeet, detectMarker = video_loop(camera)
+        angle, xDistanceInFeet, yDistanceInFeet, detectMarker = video_loop(camera, on_show)
         message = "Angle: {}".format(angle)
         print(message)
         lcd.clear()
