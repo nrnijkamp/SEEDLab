@@ -51,6 +51,8 @@ def video_loop(camera: PiCamera) -> Any:
     img = raw_capture.array
     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     cv.imshow("Image", img)
+    if cv.waitKey(1) & 0xFF == ord('q'):
+        return None
     
     arucoDict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_5X5_1000)
     param = cv.aruco.DetectorParameters_create()
@@ -100,9 +102,6 @@ def video_deinit(camera: PiCamera):
     camera.close()
     cv.destroyAllWindows()
 
-def was_quit_pressed() -> bool:
-    return cv.waitKey(1) == ord('q')
-
 # Driver code
 # Press 'q' to exit the video mode
 # Only runs when not imported
@@ -110,12 +109,12 @@ if __name__ == "__main__":
     camera = video_init()
     while True:
         #if detectMarker >= 1, there is a marker. If ==0, no marker
-        angle, xDistanceInFeet, yDistanceInFeet, detectMarker = video_loop(camera)
+        result = video_loop(camera)
+        if result is None: break
+        angle, xDistanceInFeet, yDistanceInFeet, detectMarker = result
         message = "Angle: {}".format(angle)
         print(message)
         lcd.clear()
         lcd.message = message
-        if was_quit_pressed():
-            break
     video_deinit(camera)
     print("Done")

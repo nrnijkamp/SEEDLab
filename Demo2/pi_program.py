@@ -71,8 +71,10 @@ searching = True
 last_angle = 0.0
 last_dist = 0.0
 while True:
-    # Get the quadrant the marker is in
-    angle, x_dist, y_dist, corners = pi_camera.video_loop(camera)
+    # Get marker info
+    result = pi_camera.video_loop(camera)
+    if result is None: break
+    angle, x_dist, y_dist, corners = result
 
     # Send instruction
     if corners == 0:
@@ -89,7 +91,4 @@ while True:
         searching = False
         last_angle = angle
         last_dist = dist
-
-    if pi_camera.was_quit_pressed():
-        break
 pi_camera.video_deinit(camera)
