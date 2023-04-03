@@ -45,7 +45,7 @@ def video_init() -> PiCamera:
 def video_loop(camera: PiCamera) -> Any:
     # https://picamera.readthedocs.io/en/release-1.13/api_array.html
     raw_capture = PiRGBArray(camera)
-    camera.capture(raw_capture, "bgr")
+    camera.capture(raw_capture, "bgr", use_video_port=True)
     
     # Display image
     img = raw_capture.array
@@ -92,7 +92,6 @@ def video_loop(camera: PiCamera) -> Any:
         print("No markets detected")
 
     # Close raw_capture
-    #NOTE Is this why it's so slow? are we opening and closing the camera every time?
     raw_capture.close()
         
     #Return angle
