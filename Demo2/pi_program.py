@@ -42,8 +42,8 @@ def send_instruction(
     assert angle is not None
     assert distance is not None
 
-    # Display angle
-    lcd.message = "Angle: {:.2}".format(angle)
+    # # Display angle
+    # lcd.message = "Angle: {:.2}".format(angle)
 
     # Convert data to bytes (0-255)
     angle *= math.pi/180
