@@ -53,7 +53,7 @@ bool should_move = true;
 double turn_by_angle = 0.0*PI/180.0; // radians
 double forward_distance = 0; // ft
 const double move_speed = 1; // ft/s
-const double search_speed = 45.0*PI/180.0; // radians/s
+const double search_speed = 50.0*PI/180.0; // radians/s
 const double max_turn_speed = 90.0*PI/180.0; // radians/s
 
 bool is_searching = false;
@@ -126,12 +126,12 @@ void loop() {
 
   // PID Output
   double phi_dot_desired;
-  if (!is_searching) {
-    phi_dot_desired = Kp_phi*e_phi; // P
+  if (!is_searching) phi_dot_desired = Kp_phi*e_phi; // P
+  else {
+    phi_dot_desired = search_speed;
     // Update the angle we're at.
     turn_to_angle = phi;
   }
-  else phi_dot_desired = search_speed;
   // Bound phi_dot_desired
   if (abs(phi_dot_desired) > max_turn_speed)
     phi_dot_desired = sgn(phi_dot_desired)*max_turn_speed;
@@ -264,7 +264,7 @@ void loop() {
 // Get data from raspberry pi
 const double MAX_DIST = 5;
 const double ANGLE_MIN = -PI/3;
-const double ANGLE_MIN = PI/3;
+const double ANGLE_MAX = PI/3;
 const double ANGLE_RANGE = ANGLE_MAX - ANGLE_MIN;
 void receiveData(int _byte_count) {
   byte command = Wire.read();
@@ -283,17 +283,19 @@ void receiveData(int _byte_count) {
     Serial.print(distance_byte);
     Serial.print("\t");
     
-    double angle = -angle_byte*ANGLE_RANGE/255 + ANGLE_MIN;
-    double distance = distance_byte*MAX_DIST/255;
+    double angle = -(angle_byte*ANGLE_RANGE/255 + ANGLE_MIN);
+    double distance = distance_byte*MAX_DIST/255; 
     Serial.print(angle);
     Serial.print("\t");
     Serial.print(distance);
 
+    // The first angle may be sent late, so decrease it by the search speed times the delay
+    if (is_searching) turn_by_angle += angle - search_speed * 0.2;
+    else turn_by_angle += angle;
+    distance_traveled = 0;
+    forward_distance = distance - 1; // Fudged
     is_searching = false;
     is_moving = false;
-    turn_by_angle += angle;
-    distance_traveled = 0;
-    forward_distance = distance - 1;
   }
   Serial.print("\n");
 }
