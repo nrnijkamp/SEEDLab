@@ -45,14 +45,14 @@ def video_init() -> PiCamera:
 def video_loop(camera: PiCamera) -> Any:
     # https://picamera.readthedocs.io/en/release-1.13/api_array.html
     raw_capture = PiRGBArray(camera)
-    camera.capture(raw_capture, "bgr", use_video_port=True)
+    camera.capture(raw_capture, "bgr", use_video_port=False)
     
     # Display image
     img = raw_capture.array
     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    cv.imshow("Image", img)
-    if cv.waitKey(1) & 0xFF == ord('q'):
-        return None
+    # cv.imshow("Image", img)
+    # if cv.waitKey(1) & 0xFF == ord('q'):
+    #     return None
     
     arucoDict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_5X5_1000)
     param = cv.aruco.DetectorParameters_create()
