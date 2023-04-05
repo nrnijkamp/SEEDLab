@@ -50,9 +50,9 @@ def video_loop(camera: PiCamera) -> Any:
     # Display image
     img = raw_capture.array
     img = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    # cv.imshow("Image", img)
-    # if cv.waitKey(1) & 0xFF == ord('q'):
-    #     return None
+    cv.imshow("Image", img)
+    if cv.waitKey(1) & 0xFF == ord('q'):
+        return None
     
     arucoDict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_5X5_1000)
     param = cv.aruco.DetectorParameters_create()
