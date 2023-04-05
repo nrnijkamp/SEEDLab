@@ -39,7 +39,7 @@ double Tc = currentTime(); // Running time
 //initialize variables
 const double r = 3.0 / 12.0;  // radius of the wheel
 const double d = 28 * ft_per_cm; // distance between the wheels
-const double LEFT_MOTOR_WEIGHT = 0.85;
+const double LEFT_MOTOR_WEIGHT = 1;
 const double RIGHT_MOTOR_WEIGHT = 1;
 
 // Max voltage that can be supplied
@@ -53,8 +53,8 @@ bool should_move = true;
 double turn_by_angle = 0.0*PI/180.0; // radians
 double forward_distance = 0; // ft
 const double move_speed = 1; // ft/s
-const double search_speed = 90.0*PI/180.0; // radians/s
-const double max_turn_speed = 180.0*PI/180.0; // radians/s
+const double search_speed = 45.0*PI/180.0; // radians/s
+const double max_turn_speed = 90.0*PI/180.0; // radians/s
 
 bool is_searching = false;
 bool is_moving = false;
@@ -116,17 +116,21 @@ void loop() {
 
   // Calculate phi
   double phi = r*(theta1 - theta2)/d;
-  // Serial.print("\tPhi: ");
-  // Serial.print(phi);
-  // Serial.print("\tPhi_des: ");
-  // Serial.print(phi_desired);
+  Serial.print("\tPhi: ");
+  Serial.print(phi);
+  Serial.print("\tPhi_des: ");
+  Serial.print(phi_desired);
 
   // Calculate error
   double e_phi = phi_desired - phi;
 
   // PID Output
   double phi_dot_desired;
-  if (!is_searching) phi_dot_desired = Kp_phi*e_phi; // P
+  if (!is_searching) {
+    phi_dot_desired = Kp_phi*e_phi; // P
+    // Update the angle we're at.
+    turn_to_angle = phi;
+  }
   else phi_dot_desired = search_speed;
   // Bound phi_dot_desired
   if (abs(phi_dot_desired) > max_turn_speed)
@@ -139,10 +143,10 @@ void loop() {
   // // BUG robot jittering after turning
   // // Ignore small errors while driving
   // if (is_moving && abs_bnd(e_phi) < 0.05) phi_dot_desired = phi_dot;
-  // Serial.print("\tPhi_dot: ");
-  // Serial.print(phi_dot);
-  // Serial.print("\tPhi_dot_des: ");
-  // Serial.print(phi_dot_desired);
+  Serial.print("\tPhi_dot: ");
+  Serial.print(phi_dot);
+  Serial.print("\tPhi_dot_des: ");
+  Serial.print(phi_dot_desired);
 
   // Calculate error
   double e_phi_dot = phi_dot_desired - phi_dot;
@@ -207,10 +211,10 @@ void loop() {
     u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot; // PI
   } else u_bar = 0;
 
-  // Serial.print("\tu_diff: ");
-  // Serial.print(u_diff);
-  // Serial.print("\tu_bar: ");
-  // Serial.print(u_bar);
+  Serial.print("\tu_diff: ");
+  Serial.print(u_diff);
+  Serial.print("\tu_bar: ");
+  Serial.print(u_bar);
 
   // Update Tc and Ts
   current_time = currentTime();
@@ -238,10 +242,10 @@ void loop() {
   // I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot)/Ki_rho_dot; // PI
   
 
-  // Serial.print("\tuM1: ");
-  // Serial.print(uM1);
-  // Serial.print("\tuM2: ");
-  // Serial.print(uM2);
+  Serial.print("\tuM1: ");
+  Serial.print(uM1);
+  Serial.print("\tuM2: ");
+  Serial.print(uM2);
 
   // Convert to speeds and send to motor
   int speed1 = uM1*400/umax;
@@ -254,11 +258,11 @@ void loop() {
   md.setM2Speed(speed2); // right
   stopIfFault();
 
-  // Serial.print("\n");
+  Serial.print("\n");
 }
 
 // Get data from raspberry pi
-const double MAX_DIST = 10;
+const double MAX_DIST = 5;
 void receiveData(int _byte_count) {
   byte command = Wire.read();
   Serial.print(command);
@@ -276,15 +280,17 @@ void receiveData(int _byte_count) {
     Serial.print(distance_byte);
     Serial.print("\t");
     
-    double angle = angle_byte*PI*2/255 - PI;
+    double angle = -angle_byte*PI*2/255 - PI;
     double distance = distance_byte*MAX_DIST/255;
     Serial.print(angle);
     Serial.print("\t");
     Serial.print(distance);
 
+    is_searching = false;
+    is_moving = false;
     turn_by_angle += angle;
     distance_traveled = 0;
-    forward_distance = distance;
+    forward_distance = distance - 1;
   }
   Serial.print("\n");
 }

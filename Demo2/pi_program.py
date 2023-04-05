@@ -30,7 +30,8 @@ lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 # Function to send info to lcd and Arduino
 SEARCH_INST = 0
 MOVE_INST = 1
-MAX_DIST = 10
+DISTANCE_THRESHOLD = 2
+MAX_DIST = 5
 def send_instruction(
     searching: bool,
     angle: Optional[float] = None,
@@ -45,13 +46,16 @@ def send_instruction(
     # # Display angle
     # lcd.message = "Angle: {:.2}".format(angle)
 
+    # Don't send angle when under threshold
+    if distance < DISTANCE_THRESHOLD: angle = 0
+
     # Convert data to bytes (0-255)
+    print("Sending {} and {}".format(angle, distance))
     angle *= math.pi/180
     angle_byte = int((angle+math.pi)*255//(2*math.pi)) % 256
     distance_byte = int((distance*255)//MAX_DIST)
     if distance_byte < 0: distance_byte = 0
     if 255 < distance_byte: distance_byte = 255
-    print("Sending {} and {}".format(angle, distance))
     print("Bytes {} and {}".format(angle_byte, distance_byte))
 
     # Send info to arduino
