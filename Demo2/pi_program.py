@@ -80,7 +80,7 @@ while True:
     if corners == 0:
         # No markers detected; start searching unless already searching
         if (searching): continue
-        send_instruction(True)
+        # send_instruction(True)
         searching = True
     else:
         # Markers detected; send info unless only small change
