@@ -263,6 +263,9 @@ void loop() {
 
 // Get data from raspberry pi
 const double MAX_DIST = 5;
+const double ANGLE_MIN = -PI/3;
+const double ANGLE_MIN = PI/3;
+const double ANGLE_RANGE = ANGLE_MAX - ANGLE_MIN;
 void receiveData(int _byte_count) {
   byte command = Wire.read();
   Serial.print(command);
@@ -280,7 +283,7 @@ void receiveData(int _byte_count) {
     Serial.print(distance_byte);
     Serial.print("\t");
     
-    double angle = -angle_byte*PI*2/255 - PI;
+    double angle = -angle_byte*ANGLE_RANGE/255 + ANGLE_MIN;
     double distance = distance_byte*MAX_DIST/255;
     Serial.print(angle);
     Serial.print("\t");
