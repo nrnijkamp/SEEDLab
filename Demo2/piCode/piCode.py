@@ -54,7 +54,7 @@ def video_loop(camera: PiCamera) -> Any:
     # if cv.waitKey(1) & 0xFF == ord('q'):
     #     return None
     
-    arucoDict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_5X5_1000)
+    arucoDict = cv.aruco.getPredefinedDictionary(cv.aruco.DICT_6X6_1000)
     param = cv.aruco.DetectorParameters_create()
     corners, _ids, _rejected = cv.aruco.detectMarkers(img, arucoDict, parameters=param)
     
