@@ -293,7 +293,7 @@ void receiveData(int _byte_count) {
     if (is_searching) turn_by_angle += angle - search_speed * 0.2;
     else turn_by_angle += angle;
     distance_traveled = 0;
-    forward_distance = distance - 1; // Fudged
+    forward_distance = distance - 0.5; // Fudged
     is_searching = false;
     is_moving = false;
   }
