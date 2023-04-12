@@ -58,6 +58,7 @@ const double max_turn_speed = 90.0*PI/180.0; // radians/s
 
 bool is_searching = false;
 bool is_moving = false;
+bool at_destination = false;
 double distance_traveled = 0;
 double turn_to_angle = 0;
 
@@ -78,6 +79,7 @@ void setup() {
 
   // Set I2C callbacks
   Wire.onReceive(receiveData);
+  Wire.onRequest(sendData);
 
   Serial.println("Ready!");
 }
@@ -139,10 +141,6 @@ void loop() {
 
   // Get phi_dot
   double phi_dot = r*(theta1_dot - theta2_dot)/d;
-  //NOTE uncomment if needed
-  // // BUG robot jittering after turning
-  // // Ignore small errors while driving
-  // if (is_moving && abs_bnd(e_phi) < 0.05) phi_dot_desired = phi_dot;
   Serial.print("\tPhi_dot: ");
   Serial.print(phi_dot);
   Serial.print("\tPhi_dot_des: ");
@@ -259,6 +257,9 @@ void loop() {
   stopIfFault();
 
   Serial.print("\n");
+
+  // Inform pi when we've finished moving
+  at_destination = is_moving && !is_searching && distance_traveled >= forward_distance;
 }
 
 // Get data from raspberry pi
@@ -296,6 +297,7 @@ void receiveData(int _byte_count) {
     forward_distance = distance - 0.5; // Fudged
     is_searching = false;
     is_moving = false;
+    at_destination = false;
   }
   Serial.print("\n");
 }
@@ -305,12 +307,10 @@ int sgn(double v) {
   else return -1;
 }
 
-//NOTE uncomment if needed
-// double abs_bnd(double x, double b) {
-//   double y = abs(x);
-//   if (y <= b) return x;
-//   else return y;
-// };
+// Callback for sending data
+void sendData() {
+  Wire.write(at_destination);
+}
 
 void stopIfFault() {
   if (md.getFault()) {

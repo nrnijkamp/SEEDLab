@@ -87,7 +87,6 @@ while True:
     if corners == 0:
         # No markers detected; start searching unless already searching
         if (searching): continue
-        # send_instruction(True)
         searching = True
     else:
         # Markers detected; send info unless only small change
@@ -98,4 +97,13 @@ while True:
         searching = False
         last_angle = angle
         last_dist = dist
+
+    # Check if the robot has reached its destination
+    if not searching:
+        at_destination = bus.read_byte(ADDRESS) == 1
+        # If so, start searching and increment current marker
+        if at_destination:
+            send_instruction(True)
+            camera_state.curr_marker += 1
+
 pi_camera.video_deinit(camera_state)
