@@ -1,5 +1,6 @@
 # SEED Lab, Team 3, Demo 2
 
+from dataclasses import dataclass
 from typing import Any
 
 from picamera import PiCamera
@@ -20,9 +21,14 @@ i2c = board.I2C()
 # Initialize LCD
 lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 
+@dataclass
+class CameraState:
+    camera: PiCamera
+    curr_marker: int
+
 # Calibrates the camera
 # https://picamera.readthedocs.io/en/release-1.13/api_camera.html
-def video_init() -> PiCamera:
+def video_init() -> CameraState:
     camera = PiCamera()
 
     # Set light sensitivity
@@ -38,15 +44,13 @@ def video_init() -> PiCamera:
     # Set constant awb from automatic detection
     camera.awb_mode = "off"
     camera.awb_gains = gains
-    global i
-    i = 1
 
-    return camera
+    return CameraState(camera, curr_marker=1)
 
 # Obtains the marker's position
-def video_loop(camera: PiCamera) -> Any:
+def video_loop(camera_state: CameraState) -> Any:
     # https://picamera.readthedocs.io/en/release-1.13/api_array.html
-    global i
+    camera = camera_state.camera
     raw_capture = PiRGBArray(camera)
     camera.capture(raw_capture, "bgr", use_video_port=False)
     
@@ -67,10 +71,9 @@ def video_loop(camera: PiCamera) -> Any:
     xDistanceInFeet = 0.0
     yDistanceInFeet = 0.0
     if len(corners) >= 1:
-        
         for j in range(len(ids)):
             #print(ids[j][0])
-            if ids[j][0] == i:
+            if ids[j][0] == camera_state.curr_marker:
                 print(ids[j][0])
         
                 xSum = corners[j][0][0][0] + corners[j][0][1][0] + corners[j][0][2][0] + corners[j][0][3][0]
@@ -106,24 +109,24 @@ def video_loop(camera: PiCamera) -> Any:
     #Return angle
     return (angle, xDistanceInFeet, yDistanceInFeet, len(corners))
 
-def video_deinit(camera: PiCamera):
-    camera.close()
+def video_deinit(camera: CameraState):
+    camera_state.camera.close()
     cv.destroyAllWindows()
 
 # Driver code
 # Press 'q' to exit the video mode
 # Only runs when not imported
 if __name__ == "__main__":
-    camera = video_init()
+    camera_state = video_init()
     while True:
         #if detectMarker >= 1, there is a marker. If ==0, no marker
-        result = video_loop(camera)
+        result = video_loop(camera_state)
         if result is None: break
         angle, xDistanceInFeet, yDistanceInFeet, detectMarker = result
         message = "Angle: {}".format(angle)
         print(message)
         # lcd.clear()
         # lcd.message = message
-    video_deinit(camera)
+    video_deinit(camera_state)
     print("Done")
 
