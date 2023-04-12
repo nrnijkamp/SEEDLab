@@ -1,6 +1,5 @@
 # SEED Lab, Team 3, Demo 2
 
-from dataclasses import dataclass
 from typing import Any
 
 from picamera import PiCamera
@@ -21,10 +20,10 @@ i2c = board.I2C()
 # Initialize LCD
 lcd = character_lcd.Character_LCD_RGB_I2C(i2c, lcd_columns, lcd_rows)
 
-@dataclass
 class CameraState:
-    camera: PiCamera
-    curr_marker: int
+    def __init__(self, camera: PiCamera, curr_marker: int):
+        self.camera = camera
+        self.curr_marker = curr_marker
 
 # Calibrates the camera
 # https://picamera.readthedocs.io/en/release-1.13/api_camera.html
