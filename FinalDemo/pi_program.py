@@ -100,7 +100,7 @@ while True:
 
     # Check if the robot has reached its destination
     if not searching:
-        at_destination = bus.read_block_data(ADDRESS, 0) == 1
+        at_destination = bus.read_i2c_block_data(ADDRESS, 0, 1) == 1
         # If so, start searching and increment current marker
         if at_destination:
             send_instruction(True)
