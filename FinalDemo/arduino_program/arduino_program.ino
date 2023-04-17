@@ -274,7 +274,7 @@ void receiveData(int _byte_count) {
   if (command == 0) {
     // Search for marker
     is_searching = true;
-  } else {
+  } else if (command == 1) {
     // Update angle and distance
     byte angle_byte = Wire.read();
     byte distance_byte = Wire.read();
@@ -298,18 +298,17 @@ void receiveData(int _byte_count) {
     is_searching = false;
     is_moving = false;
     at_destination = false;
+  } else {
+    Wire.write(at_destination);
+    Serial.print("Sent ");
+    Serial.print(at_destination);
+    Serial.print("\n");
   }
   Serial.print("\n");
 }
 
-int sgn(double v) {
-  if (v >= 0) return 1;
-  else return -1;
-}
-
 // Callback for sending data
 void sendData() {
-  Wire.write(at_destination);
 }
 
 void stopIfFault() {
@@ -317,4 +316,9 @@ void stopIfFault() {
     Serial.println("fault");
     while (true);
   }
+}
+
+int sgn(double v) {
+  if (v >= 0) return 1;
+  else return -1;
 }
