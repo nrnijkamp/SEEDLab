@@ -2,6 +2,7 @@
 # Dawson J. Gullickson
 
 import math
+import time
 from typing import Optional
 
 import smbus2
@@ -100,6 +101,7 @@ while True:
 
     # Check if the robot has reached its destination
     if not searching:
+        time.sleep(0.2)
         at_destination = bus.read_byte(ADDRESS) == 1
         # If so, start searching and increment current marker
         if at_destination:
