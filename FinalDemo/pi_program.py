@@ -105,6 +105,7 @@ while True:
         at_destination = bus.read_byte(ADDRESS) == 1
         # If so, start searching and increment current marker
         if at_destination:
+            print("Finished travelling.")
             send_instruction(True)
             camera_state.curr_marker += 1
 
