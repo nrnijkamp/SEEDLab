@@ -33,6 +33,7 @@ double Ki_rho_dot = 119.884076500748; // V/m
 double I_rho_dot = 0; // integral
 // double e_rho_dot_past = 0; // previous value
 
+// const double Ts_MIN = 0.1;
 double Ts = 0.1; // Time step
 double Tc = currentTime(); // Running time
 
@@ -118,10 +119,10 @@ void loop() {
 
   // Calculate phi
   double phi = r*(theta1 - theta2)/d;
-  Serial.print("\tPhi: ");
-  Serial.print(phi);
-  Serial.print("\tPhi_des: ");
-  Serial.print(phi_desired);
+  // Serial.print("\tPhi: ");
+  // Serial.print(phi);
+  // Serial.print("\tPhi_des: ");
+  // Serial.print(phi_desired);
 
   // Calculate error
   double e_phi = phi_desired - phi;
@@ -141,10 +142,10 @@ void loop() {
 
   // Get phi_dot
   double phi_dot = r*(theta1_dot - theta2_dot)/d;
-  Serial.print("\tPhi_dot: ");
-  Serial.print(phi_dot);
-  Serial.print("\tPhi_dot_des: ");
-  Serial.print(phi_dot_desired);
+  // Serial.print("\tPhi_dot: ");
+  // Serial.print(phi_dot);
+  // Serial.print("\tPhi_dot_des: ");
+  // Serial.print(phi_dot_desired);
 
   // Calculate error
   double e_phi_dot = phi_dot_desired - phi_dot;
@@ -180,12 +181,14 @@ void loop() {
   // Get rho_dot
   double rho_dot = r*(theta1_dot + theta2_dot)/2;
   distance_traveled += rho_dot*Ts;
-  // Serial.print("\tRho_dot: ");
-  // Serial.print(rho_dot);
-  // Serial.print("\tRho_dot_des: ");
-  // Serial.print(rho_dot_desired);
-  // Serial.print("\tDistance: ");
-  // Serial.print(distance_traveled);
+  Serial.print("\tRho_dot: ");
+  Serial.print(rho_dot);
+  Serial.print("\tRho_dot_des: ");
+  Serial.print(rho_dot_desired);
+  Serial.print("\tDistance: ");
+  Serial.print(distance_traveled);
+  Serial.print("\tDistance_des: ");
+  Serial.print(forward_distance);
 
   // Calculate error
   double e_rho_dot = rho_dot_desired - rho_dot;
@@ -215,6 +218,7 @@ void loop() {
   Serial.print(u_bar);
 
   // Update Tc and Ts
+  // while(currentTime() < Tc + Ts_MIN);
   current_time = currentTime();
   Ts = current_time - Tc;
   Tc = current_time;
@@ -259,7 +263,7 @@ void loop() {
   Serial.print("\n");
 
   // Inform pi when we've finished moving
-  at_destination = is_moving && !is_searching && distance_traveled >= forward_distance;
+  at_destination = is_moving && !is_searching && !(distance_traveled < forward_distance);
 }
 
 // Get data from raspberry pi
@@ -269,7 +273,8 @@ const double ANGLE_MAX = PI/3;
 const double ANGLE_RANGE = ANGLE_MAX - ANGLE_MIN;
 void receiveData(int _byte_count) {
   byte command = Wire.read();
-  Serial.print(command);
+  Serial.print("\nRecieved ");
+  Serial.println(command);
 
   if (command == 0) {
     // Search for marker
@@ -288,7 +293,7 @@ void receiveData(int _byte_count) {
     double distance = distance_byte*MAX_DIST/255; 
     Serial.print(angle);
     Serial.print("\t");
-    Serial.print(distance);
+    Serial.println(distance);
 
     // The first angle may be sent late, so decrease it by the search speed times the delay
     if (is_searching) turn_by_angle += angle - search_speed * 0.2;
@@ -299,16 +304,16 @@ void receiveData(int _byte_count) {
     is_moving = false;
     at_destination = false;
   } else {
-    Wire.write(at_destination);
-    Serial.print("Sent ");
-    Serial.print(at_destination);
-    Serial.print("\n");
+    Serial.print("error: unexpected command ");
+    Serial.println(command);
   }
-  Serial.print("\n");
 }
 
-// Callback for sending data
 void sendData() {
+  Wire.write(at_destination);
+  Serial.print("Sent ");
+  Serial.print(at_destination);
+  Serial.print("\n");
 }
 
 void stopIfFault() {
