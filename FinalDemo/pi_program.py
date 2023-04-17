@@ -88,7 +88,7 @@ while True:
     if corners == 0:
         # No markers detected; start searching unless already searching
         if (searching): continue
-        searching = True
+        # searching = True
     else:
         # Markers detected; send info unless only small change
         dist = math.sqrt(x_dist**2 + y_dist**2)
@@ -108,5 +108,6 @@ while True:
             print("Finished travelling.")
             send_instruction(True)
             camera_state.curr_marker += 1
+            searching = True
 
 pi_camera.video_deinit(camera_state)
