@@ -69,10 +69,12 @@ def video_loop(camera_state: CameraState) -> Any:
     angle = 0.0
     xDistanceInFeet = 0.0
     yDistanceInFeet = 0.0
+    saw_marker = False
     if len(corners) >= 1:
         for j in range(len(ids)):
             #print(ids[j][0])
             if ids[j][0] == camera_state.curr_marker:
+                saw_marker = True
                 print(ids[j][0])
         
                 xSum = corners[j][0][0][0] + corners[j][0][1][0] + corners[j][0][2][0] + corners[j][0][3][0]
@@ -106,7 +108,7 @@ def video_loop(camera_state: CameraState) -> Any:
     raw_capture.close()
         
     #Return angle
-    return (angle, xDistanceInFeet, yDistanceInFeet, len(corners))
+    return (angle, xDistanceInFeet, yDistanceInFeet, saw_marker)
 
 def video_deinit(camera: CameraState):
     camera_state.camera.close()

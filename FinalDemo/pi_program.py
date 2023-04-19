@@ -82,10 +82,10 @@ while True:
     # Get marker info
     result = pi_camera.video_loop(camera_state)
     if result is None: break
-    angle, x_dist, y_dist, corners = result
+    angle, x_dist, y_dist, saw_marker = result
 
     # Send instruction
-    if corners == 0:
+    if not saw_marker:
         # No markers detected; start searching unless already searching
         if (searching): continue
         # searching = True
