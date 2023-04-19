@@ -70,12 +70,13 @@ def video_loop(camera_state: CameraState) -> Any:
     xDistanceInFeet = 0.0
     yDistanceInFeet = 0.0
     saw_marker = False
+    print("Searching for marker {}".format(camera_state.curr_marker))
     if len(corners) >= 1:
         for j in range(len(ids)):
-            #print(ids[j][0])
+            print("Sees marker {}".format(ids[j][0]))
             if ids[j][0] == camera_state.curr_marker:
+                print("Found marker {}".format(camera_state.curr_marker))
                 saw_marker = True
-                print(ids[j][0])
         
                 xSum = corners[j][0][0][0] + corners[j][0][1][0] + corners[j][0][2][0] + corners[j][0][3][0]
                 xCenterPixel = xSum / 4
