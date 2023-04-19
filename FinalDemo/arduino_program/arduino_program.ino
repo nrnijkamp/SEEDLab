@@ -33,7 +33,7 @@ double Ki_rho_dot = 119.884076500748; // V/m
 double I_rho_dot = 0; // integral
 // double e_rho_dot_past = 0; // previous value
 
-// const double Ts_MIN = 0.1;
+const double Ts_MIN = 0.01;
 double Ts = 0.1; // Time step
 double Tc = currentTime(); // Running time
 
@@ -181,14 +181,14 @@ void loop() {
   // Get rho_dot
   double rho_dot = r*(theta1_dot + theta2_dot)/2;
   distance_traveled += rho_dot*Ts;
-  Serial.print("\tRho_dot: ");
-  Serial.print(rho_dot);
-  Serial.print("\tRho_dot_des: ");
-  Serial.print(rho_dot_desired);
-  Serial.print("\tDistance: ");
-  Serial.print(distance_traveled);
-  Serial.print("\tDistance_des: ");
-  Serial.print(forward_distance);
+  // Serial.print("\tRho_dot: ");
+  // Serial.print(rho_dot);
+  // Serial.print("\tRho_dot_des: ");
+  // Serial.print(rho_dot_desired);
+  // Serial.print("\tDistance: ");
+  // Serial.print(distance_traveled);
+  // Serial.print("\tDistance_des: ");
+  // Serial.print(forward_distance);
 
   // Calculate error
   double e_rho_dot = rho_dot_desired - rho_dot;
@@ -212,16 +212,18 @@ void loop() {
     u_bar = Kp_rho_dot*e_rho_dot + Ki_rho_dot*I_rho_dot; // PI
   } else u_bar = 0;
 
-  Serial.print("\tu_diff: ");
-  Serial.print(u_diff);
-  Serial.print("\tu_bar: ");
-  Serial.print(u_bar);
+  // Serial.print("\tu_diff: ");
+  // Serial.print(u_diff);
+  // Serial.print("\tu_bar: ");
+  // Serial.print(u_bar);
 
   // Update Tc and Ts
-  // while(currentTime() < Tc + Ts_MIN);
+  while(currentTime() < Tc + Ts_MIN);
   current_time = currentTime();
   Ts = current_time - Tc;
   Tc = current_time;
+  // Serial.print("\tTs: ");
+  // Serial.print(Ts);
 
   // Update theta1_old and theta2_old
   theta1_old = theta1;
@@ -244,10 +246,10 @@ void loop() {
   // I_rho_dot = (u_bar-Kp_rho_dot*e_rho_dot)/Ki_rho_dot; // PI
   
 
-  Serial.print("\tuM1: ");
-  Serial.print(uM1);
-  Serial.print("\tuM2: ");
-  Serial.print(uM2);
+  // Serial.print("\tuM1: ");
+  // Serial.print(uM1);
+  // Serial.print("\tuM2: ");
+  // Serial.print(uM2);
 
   // Convert to speeds and send to motor
   int speed1 = uM1*400/umax;
@@ -260,7 +262,7 @@ void loop() {
   md.setM2Speed(speed2); // right
   stopIfFault();
 
-  Serial.print("\n");
+  // Serial.print("\n");
 
   // Inform pi when we've finished moving
   at_destination = is_moving && !is_searching && !(distance_traveled < forward_distance);
