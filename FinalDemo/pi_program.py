@@ -106,7 +106,9 @@ while True:
         # If so, start searching and increment current marker
         if at_destination:
             print("Finished travelling.")
-            time.sleep(2) #TODO up this to 5s
+            # Stop searching after 6 markers
+            if camera_state.curr_marker == 6: break
+            time.sleep(3) #TODO up this to 5s
             send_instruction(True)
             camera_state.curr_marker += 1
             searching = True
