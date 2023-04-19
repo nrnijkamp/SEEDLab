@@ -111,7 +111,7 @@ def video_loop(camera_state: CameraState) -> Any:
     #Return angle
     return (angle, xDistanceInFeet, yDistanceInFeet, saw_marker)
 
-def video_deinit(camera: CameraState):
+def video_deinit(camera_state: CameraState):
     camera_state.camera.close()
     cv.destroyAllWindows()
 
