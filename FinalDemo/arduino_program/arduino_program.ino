@@ -63,6 +63,12 @@ bool at_destination = false;
 double distance_traveled = 0;
 double turn_to_angle = 0;
 
+double x_offset = 0;
+double y_offset = 0;
+double search_end_angle = 0;
+bool should_set_end_angle = false;
+bool should_resume_searching = false;
+
 double theta1_old = 0;
 double theta2_old = 0;
 double u_diff_old = 0;
@@ -124,13 +130,29 @@ void loop() {
   // Serial.print("\tPhi_des: ");
   // Serial.print(phi_desired);
 
+  // Set initial angle
+  if (should_set_end_angle) {
+    should_set_end_angle = false;
+    search_end_angle = phi + 5*PI;
+  }  
+
   // Calculate error
   double e_phi = phi_desired - phi;
 
   // PID Output
   double phi_dot_desired;
   if (!is_searching) phi_dot_desired = Kp_phi*e_phi; // P
-  else {
+  else if (phi >= search_end_angle) {
+    // Go to the center
+    double angle = atan2(-y_offset, -x_offset);
+    turn_by_angle += angle;
+    distance_traveled = 0;
+    forward_distance = sqrt(x_offset*x_offset + y_offset*y_offset) - 0.5; // Fudged
+    is_searching = false;
+    is_moving = false;
+    at_destination = false;
+    should_resume_searching = true;
+  } else {
     phi_dot_desired = search_speed;
     // Update the angle we're at.
     turn_to_angle = phi;
@@ -181,6 +203,8 @@ void loop() {
   // Get rho_dot
   double rho_dot = r*(theta1_dot + theta2_dot)/2;
   distance_traveled += rho_dot*Ts;
+  x_offset += rho_dot*Ts*cos(phi);
+  y_offset += rho_dot*Ts*sin(phi);
   // Serial.print("\tRho_dot: ");
   // Serial.print(rho_dot);
   // Serial.print("\tRho_dot_des: ");
@@ -264,8 +288,20 @@ void loop() {
 
   // Serial.print("\n");
 
-  // Inform pi when we've finished moving
-  at_destination = is_moving && !is_searching && !(distance_traveled < forward_distance);
+  if (is_moving && !is_searching && distance_traveled >= forward_distance) {
+    if (should_resume_searching) {
+      // Resume searching
+      should_resume_searching = false;
+      is_searching = true;
+      // NOTE Will already be at center...
+      should_set_end_angle = true;
+    } else {
+      // Inform pi when we've finished moving
+      at_destination = true;
+    }
+  } else {
+    at_destination = false;
+  }
 }
 
 // Get data from raspberry pi
@@ -281,6 +317,7 @@ void receiveData(int _byte_count) {
   if (command == 0) {
     // Search for marker
     is_searching = true;
+    should_set_end_angle = true;
   } else if (command == 1) {
     // Update angle and distance
     byte angle_byte = Wire.read();
