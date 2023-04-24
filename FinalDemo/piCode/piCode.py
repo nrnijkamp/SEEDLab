@@ -89,9 +89,9 @@ def video_loop(camera_state: CameraState) -> Any:
                 
                 #Did a calibration picture with the angle that we have on the camera. This set of equations will convert pixel coors to real life feet away.
                 #With real feet as our distance, we can find the real world angle
-                xPixelsPerFoot = 1.2982 * yBottomCenterPixel + 215.55
+                xPixelsPerFoot = 1.2756 * yBottomCenterPixel + 72.55
                 xDistanceInFeet = (960 - xCenterPixel) / xPixelsPerFoot
-                yDistanceInFeet = 184.39 * yBottomCenterPixel ** -0.746
+                yDistanceInFeet = -2.803 * math.log(yBottomCenterPixel) + 19.813
                 
                 angleInRad = math.atan(xDistanceInFeet / yDistanceInFeet)
                 angle = angleInRad * 180 / math.pi
