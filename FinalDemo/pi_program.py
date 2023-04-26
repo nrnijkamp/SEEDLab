@@ -42,6 +42,7 @@ def send_instruction(
     distance: Optional[float] = None
 ):
     if searching:
+        print("Starting search")
         bus.write_byte(ADDRESS, SEARCH_INST)
         return
     assert angle is not None
