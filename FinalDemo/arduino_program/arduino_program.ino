@@ -342,6 +342,7 @@ void receiveData(int _byte_count) {
     is_searching = false;
     is_moving = false;
     at_destination = false;
+    should_resume_searching = false;
   } else {
     Serial.print("error: unexpected command ");
     Serial.println(command);
