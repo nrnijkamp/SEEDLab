@@ -109,7 +109,7 @@ while True:
             print("Finished travelling.")
             # Stop searching after 6 markers
             if camera_state.curr_marker == 6: break
-            time.sleep(5)
+            time.sleep(4.8)
             send_instruction(True)
             camera_state.curr_marker += 1
             searching = True
