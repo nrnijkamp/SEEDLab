@@ -335,10 +335,10 @@ void receiveData(int _byte_count) {
     Serial.println(distance);
 
     // The first angle may be sent late, so decrease it by the search speed times the delay
-    if (is_searching) turn_by_angle += angle - search_speed * 0.2;
+    if (is_searching) turn_by_angle += angle - search_speed * 0.3;
     else turn_by_angle += angle;
     distance_traveled = 0;
-    forward_distance = distance - 0.25; // Fudged
+    forward_distance = distance - 0.5; // Fudged
     is_searching = false;
     is_moving = false;
     at_destination = false;
